@@ -1,0 +1,6 @@
+{
+  "name": "bucklescript-test",
+  "sources": {
+    "dir": "src"
+  }
+}
