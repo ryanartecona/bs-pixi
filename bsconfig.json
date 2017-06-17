@@ -1,5 +1,8 @@
 {
   "name": "bucklescript-test",
+  "bs-dependencies": [
+    "bs-webapi"
+  ],
   "sources": {
     "dir": "src"
   }
