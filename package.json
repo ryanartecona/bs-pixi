@@ -5,7 +5,7 @@
     "bs-platform": "^1.7.4",
     "bs-webapi": "^0.4.1",
     "npm": "^5.0.3",
-    "pixi.js": "^4.5.3",
+    "pixi.js": "4.5.3",
     "webpack": "^2.6.1",
     "webpack-dev-server": "^2.4.5",
     "write-file-webpack-plugin": "^4.1.0"
