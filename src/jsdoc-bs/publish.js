@@ -11,13 +11,21 @@ var titleCase = function(s) {
 };
 
 var camelCase = function(s) {
-  return s
-    .replace(/^[A-Z]+$/, function(m) {
-      return m.toLowerCase();
-    })
-    .replace(/^./, function(c) {
-      return c.toLowerCase();
-    });
+  return (
+    s
+      // ALL_CAPS -> all_caps
+      .replace(/^[A-Z_]+$/, function(m) {
+        return m.toLowerCase();
+      })
+      // FXAAFilter -> fxaaFilter
+      .replace(/^([A-Z]+)([A-Z])/, (m, m1, m2) => {
+        return `${m1.toLowerCase()}${m2}`;
+      })
+      // FooBar -> fooBar
+      .replace(/^./, function(c) {
+        return c.toLowerCase();
+      })
+  );
 };
 
 var modulePathFromLongname = function(longname) {
@@ -101,7 +109,14 @@ var formatDescription = function(desc) {
   return desc.replace(/<p>([^<]*)<\/p>/gm, "$1\n").trim();
 };
 
-var pprint = function(item, path) {
+var emitModuleType = classes => {
+  var emittedClassTypes = classes.map(c => `type ${c};`).join("\n");
+  return `module type PixiTypes = {
+${emittedClassTypes}
+};`;
+};
+
+var emitModuleImpl = function(item, path) {
   var name = path[path.length - 1];
   var descComment = item.description
     ? `/*
@@ -132,12 +147,18 @@ ${descComment} external set${titleCase(
     var module = item;
     var pprintedItem = [];
     for (var modname in module["items"]) {
-      pprintedItem.push(pprint(module["items"][modname], path.concat(modname)));
+      pprintedItem.push(
+        emitModuleImpl(module["items"][modname], path.concat(modname))
+      );
     }
     return `${descComment} module ${name} = {
 ${pprintedItem.join("\n")}
 };`;
   }
+};
+
+var emit = (modules, classes) => {
+  return emitModuleType(classes) + emitModuleImpl(modules, ["Impl"]);
 };
 
 function cleanupLongname(longname) {
@@ -171,9 +192,19 @@ function cleanupLongname(longname) {
   return replaced;
 }
 
+var ensureClassExists = (classes, c) => {
+  if (!_.includes(classes, c)) {
+    classes.push(c);
+  } else {
+    throw `class (${c}) already exists`;
+  }
+  return c;
+};
+
 exports.publish = function(taffyData, opts) {
   var data = taffyData;
   var modules = mkModule();
+  var classes = [];
 
   data({ undocumented: true }).remove();
 
@@ -189,9 +220,12 @@ exports.publish = function(taffyData, opts) {
   });
 
   data().each(function(datum) {
-    if (datum.kind === "class" // && datum.access !== "private"
-       ) {
-      // if (/ParticleRenderer/.test(datum.longname)) {
+    if (
+      datum.kind === "class" &&
+      datum.access !== "private" &&
+      !datum.deprecated
+    ) {
+      // if (/MovieClip/.test(datum.longname)) {
       //   ppJson(datum);
       // }
       var m = ensureModuleExists(
@@ -200,7 +234,12 @@ exports.publish = function(taffyData, opts) {
       );
       m.description = datum.classdesc;
       m.private = datum.access === "private";
-      m.items["t"] = { type: "type", description: datum.classdesc };
+      m.items["t"] = {
+        type: "type",
+        description: datum.classdesc,
+        name: datum.name
+      };
+      ensureClassExists(classes, camelCase(datum.name));
     }
   });
 
@@ -229,9 +268,5 @@ exports.publish = function(taffyData, opts) {
     }
   });
 
-  // ppJson(modules);
-  var submodules = modules["items"]; //["PIXI"]["items"];
-  for (var name in submodules) {
-    console.log(pprint(submodules[name], [name]));
-  }
+  console.log(emit(modules, classes));
 };
