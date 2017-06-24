@@ -21,6 +21,10 @@ var camelCase = function(s) {
 };
 
 var modulePathFromLongname = function(longname) {
+  // var cleanLongname = cleanupLongname(longname);
+  // var components = cleanLongname.split(".");
+  // return _.map(components, titleCase);
+  // return cleanupLongname(longname).split(".");
   return longname.split(".");
 };
 
@@ -30,13 +34,22 @@ var mkModule = function() {
 
 var ensureModuleExists = function(modules, modulePath) {
   var m = modules;
-  var i = 0;
-  while (i < modulePath.length) {
+  for (var i = 0; i < modulePath.length; i++) {
     if (!m["items"][modulePath[i]]) {
       m["items"][modulePath[i]] = mkModule();
     }
     m = m["items"][modulePath[i]];
-    i++;
+  }
+  return m;
+};
+
+var getItem = function(modules, path) {
+  var m = modules;
+  for (var i = 0; i < path.length; i++) {
+    if (!(m["items"] && m["items"][path[i]])) {
+      return null;
+    }
+    m = m["items"][path[i]];
   }
   return m;
 };
@@ -45,27 +58,38 @@ var jsToBsType = (function() {
   var simpleTranslations = {
     boolean: "Js.boolean",
     string: "string",
-    number: "int",
-    Number: "int",
+    number: "float",
+    Number: "float",
     HTMLCanvasElement: "Dom.element",
     WebGLRenderingContext: "ReasonJs.Gl.glT",
     WebGLBuffer: "ReasonJs.Gl.bufferT"
   };
   var regexpArrayOf = /^Array\.<(.*)>$/;
-  return function(jsTypeNames) {
+  return function(modules, jsTypeNames) {
     if (jsTypeNames.length === 1) {
       var jsTypeName = jsTypeNames[0];
       if (simpleTranslations[jsTypeName]) {
         return simpleTranslations[jsTypeName];
       } else if (regexpArrayOf.test(jsTypeName)) {
         return jsTypeName.replace(regexpArrayOf, function(match, g1) {
-          return `array ${jsToBsType([g1])}`;
+          return `array ${jsToBsType(modules, [g1])}`;
         });
+      } else {
+        var cleanLongname = cleanupLongname(jsTypeName);
+        var classModule = getItem(
+          modules,
+          modulePathFromLongname(cleanLongname)
+        );
+        if (classModule && classModule.items["t"]) {
+          return `${cleanLongname}.t`;
+        }
       }
-    } else if (_.isEqual(jsTypeNames, ['HTMLImageElement'|'HTMLCanvasElement'])) {
+    } else if (
+      _.isEqual(jsTypeNames, ["HTMLImageElement" | "HTMLCanvasElement"])
+    ) {
       return `Dom.element`;
     }
-    return `unit /* unknown js type: ${jsTypeNames.join('|')} */`;
+    return `unit /* unknown js type: ${jsTypeNames.join("|")} */`;
   };
 })();
 
@@ -73,11 +97,15 @@ var unkeyword = function(name) {
   return name.replace(/^(type)$/, "$1_");
 };
 
+var formatDescription = function(desc) {
+  return desc.replace(/<p>([^<]*)<\/p>/gm, "$1\n").trim();
+};
+
 var pprint = function(item, path) {
   var name = path[path.length - 1];
   var descComment = item.description
     ? `/*
-${item.description}
+${formatDescription(item.description)}
 */
 `
     : "";
@@ -98,13 +126,15 @@ ${descComment} external set${titleCase(
     }
     return r;
   } else if (item.type === "module") {
+    if (item.private) {
+      return "";
+    }
     var module = item;
     var pprintedItem = [];
     for (var modname in module["items"]) {
       pprintedItem.push(pprint(module["items"][modname], path.concat(modname)));
     }
-    var ppModuleName = titleCase(name);
-    return `module ${ppModuleName} = {
+    return `${descComment} module ${name} = {
 ${pprintedItem.join("\n")}
 };`;
   }
@@ -128,7 +158,13 @@ function cleanupLongname(longname) {
     .replace(/~/, ".")
     // e.g. 'PIXI.accessibility.AccessibilityManager.AccessibilityManager#debug'
     // ->   'PIXI.accessibility.AccessibilityManager#debug'
-    .replace(/(\w+)\.(\1)(\W|$)/, "$1$3");
+    .replace(/(\w+)\.(\1)(\W|$)/, "$1$3")
+    // Strip 'PIXI.' namespace prefix
+    .replace(/^PIXI\./, "")
+    // Capitalize module names
+    .split(".")
+    .map(titleCase)
+    .join(".");
   // if (longname !== replaced) {
   //   console.error(`replacing (${longname}) with (${replaced})`);
   // }
@@ -142,6 +178,9 @@ exports.publish = function(taffyData, opts) {
   data({ undocumented: true }).remove();
 
   data().each(function(datum) {
+    // if (/autoStart$/.test(datum.longname)) {
+    //   ppJson(datum);
+    // }
     ["longname", "memberof"].forEach(function(prop) {
       if (datum[prop]) {
         datum[prop] = cleanupLongname(datum[prop]);
@@ -150,12 +189,18 @@ exports.publish = function(taffyData, opts) {
   });
 
   data().each(function(datum) {
-    if (datum.kind === "class") {
+    if (datum.kind === "class" // && datum.access !== "private"
+       ) {
+      // if (/ParticleRenderer/.test(datum.longname)) {
+      //   ppJson(datum);
+      // }
       var m = ensureModuleExists(
         modules,
         modulePathFromLongname(datum.longname)
       );
-      m.items["t"] = { type: "type", description: datum.description };
+      m.description = datum.classdesc;
+      m.private = datum.access === "private";
+      m.items["t"] = { type: "type", description: datum.classdesc };
     }
   });
 
@@ -168,9 +213,9 @@ exports.publish = function(taffyData, opts) {
       !datum.deprecated &&
       (!datum.params || datum.params.length === 0)
     ) {
-      if (/debug/.test(datum.longname)) {
-        ppJson(datum);
-      }
+      // if (/autoStart$/.test(datum.longname)) {
+      //   ppJson(datum);
+      // }
       var m = ensureModuleExists(
         modules,
         modulePathFromLongname(datum.memberof)
@@ -178,15 +223,14 @@ exports.publish = function(taffyData, opts) {
       m.items[datum.name] = {
         type: "getter",
         description: datum.description,
-        bsType: jsToBsType(datum.type.names),
+        bsType: jsToBsType(modules, datum.type.names),
         setter: !datum.readonly
       };
     }
   });
 
   // ppJson(modules);
-  // console.log(pprint(modules['items']['PIXI'], ['Pixi']));
-  var submodules = modules["items"]["PIXI"]["items"];
+  var submodules = modules["items"]; //["PIXI"]["items"];
   for (var name in submodules) {
     console.log(pprint(submodules[name], [name]));
   }
