@@ -47,6 +47,7 @@ let _ = {
 let _ = {
   open PixiAuto;
   let transform = Transform.create ();
-  /* let countLimiter = CountLimiter.create 10. (); */
+  let countLimiter = Prepare.CountLimiter.create 10. ();
+  let baseTexture = BaseRenderTexture.create 10. 10. 1. 2. ();
   ()
 };

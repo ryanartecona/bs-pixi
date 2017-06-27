@@ -32,7 +32,6 @@ module type TYPES = {
   type filter;
   type spriteMaskFilter;
   type blendModeManager;
-  type filterState;
   type filterManager;
   type maskManager;
   type stencilManager;
@@ -61,7 +60,6 @@ module type TYPES = {
   type bitmapText;
   type textureTransform;
   type tilingSprite;
-  type cacheData;
   type tilingSpriteRenderer;
   type blurFilter;
   type blurXFilter;
@@ -117,7 +115,7 @@ module Impl (T: TYPES) => {
       external create :
         renderer::unit /* unknown js type: PIXI.CanvasRenderer|PIXI.WebGLRenderer */ => unit => t =
         "AccessibilityManager"
-        [@@bs.new] [@@bs.scope "Accessibility"] [@@bs.module ("pixi.js", "PIXI")];
+        [@@bs.new] [@@bs.scope "accessibility"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        Setting this to true will visually show the divs.
        */
@@ -2488,10 +2486,6 @@ module Impl (T: TYPES) => {
      */
     external setRenderer : t => T.webGLRenderer => unit = "renderer" [@@bs.set];
   };
-  module FilterState = {
-    type t = T.filterState;
-    external create : unit => t = "FilterState" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
-  };
   module FilterManager = {
     type t = T.filterManager;
     external create : renderer::T.webGLRenderer => unit => t =
@@ -3596,8 +3590,6 @@ module Impl (T: TYPES) => {
       "TextMetrics" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     module FontMetrics = {
       type t = T.fontMetrics;
-      external create : unit => t =
-        "FontMetrics" [@@bs.new] [@@bs.scope "TextMetrics"] [@@bs.module ("pixi.js", "PIXI")];
     };
   };
   /*
@@ -4511,7 +4503,7 @@ module Impl (T: TYPES) => {
        */
       type t = T.ticker;
       external create : unit => t =
-        "Ticker" [@@bs.new] [@@bs.scope "Ticker"] [@@bs.module ("pixi.js", "PIXI")];
+        "Ticker" [@@bs.new] [@@bs.scope "ticker"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        Whether or not this ticker should invoke the method
        {@link PIXI.ticker.Ticker#start} automatically
@@ -4630,7 +4622,7 @@ module Impl (T: TYPES) => {
     module EventEmitter = {
       type t = T.eventEmitter;
       external create : unit => t =
-        "EventEmitter" [@@bs.new] [@@bs.scope "Utils"] [@@bs.module ("pixi.js", "PIXI")];
+        "EventEmitter" [@@bs.new] [@@bs.scope "utils"] [@@bs.module ("pixi.js", "PIXI")];
     };
   };
   module Extract = {
@@ -4647,7 +4639,7 @@ module Impl (T: TYPES) => {
        */
       type t = T.canvasExtract;
       external create : renderer::T.canvasRenderer => unit => t =
-        "CanvasExtract" [@@bs.new] [@@bs.scope "Extract"] [@@bs.module ("pixi.js", "PIXI")];
+        "CanvasExtract" [@@bs.new] [@@bs.scope "extract"] [@@bs.module ("pixi.js", "PIXI")];
     };
     /*
      The extract manager provides functionality to export content from the renderers.
@@ -4662,7 +4654,7 @@ module Impl (T: TYPES) => {
        */
       type t = T.webGLExtract;
       external create : renderer::T.webGLRenderer => unit => t =
-        "WebGLExtract" [@@bs.new] [@@bs.scope "Extract"] [@@bs.module ("pixi.js", "PIXI")];
+        "WebGLExtract" [@@bs.new] [@@bs.scope "extract"] [@@bs.module ("pixi.js", "PIXI")];
     };
   };
   module Extras = {
@@ -4701,7 +4693,7 @@ module Impl (T: TYPES) => {
         autoUpdate::Js.boolean =>
         unit =>
         t =
-        "AnimatedSprite" [@@bs.new] [@@bs.scope "Extras"] [@@bs.module ("pixi.js", "PIXI")];
+        "AnimatedSprite" [@@bs.new] [@@bs.scope "extras"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The speed that the AnimatedSprite will play at. Higher is faster, lower is slower
        */
@@ -5132,7 +5124,7 @@ module Impl (T: TYPES) => {
        */
       type t = T.bitmapText;
       external create : text::string => style::unit /* unknown js type: object */ => unit => t =
-        "BitmapText" [@@bs.new] [@@bs.scope "Extras"] [@@bs.module ("pixi.js", "PIXI")];
+        "BitmapText" [@@bs.new] [@@bs.scope "extras"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The dirty state of this object.
        */
@@ -5510,7 +5502,7 @@ module Impl (T: TYPES) => {
        */
       type t = T.textureTransform;
       external create : texture::T.texture => clampMargin::float => unit => t =
-        "TextureTransform" [@@bs.new] [@@bs.scope "Extras"] [@@bs.module ("pixi.js", "PIXI")];
+        "TextureTransform" [@@bs.new] [@@bs.scope "extras"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        Changes frame clamping
        Works with TilingSprite and Mesh
@@ -5553,7 +5545,7 @@ module Impl (T: TYPES) => {
        */
       type t = T.tilingSprite;
       external create : texture::T.texture => width::float => height::float => unit => t =
-        "TilingSprite" [@@bs.new] [@@bs.scope "Extras"] [@@bs.module ("pixi.js", "PIXI")];
+        "TilingSprite" [@@bs.new] [@@bs.scope "extras"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        Tile transform
        */
@@ -5957,7 +5949,7 @@ module Impl (T: TYPES) => {
        */
       type t = T.tilingSpriteRenderer;
       external create : renderer::T.webGLRenderer => unit => t =
-        "TilingSpriteRenderer" [@@bs.new] [@@bs.scope "Extras"] [@@bs.module ("pixi.js", "PIXI")];
+        "TilingSpriteRenderer" [@@bs.new] [@@bs.scope "extras"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The renderer this manager works for.
        */
@@ -5967,10 +5959,6 @@ module Impl (T: TYPES) => {
        */
       external setRenderer : t => T.webGLRenderer => unit = "renderer" [@@bs.set];
     };
-  };
-  module CacheData = {
-    type t = T.cacheData;
-    external create : unit => t = "CacheData" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
   };
   module Filters = {
     /*
@@ -5985,7 +5973,7 @@ module Impl (T: TYPES) => {
       type t = T.blurFilter;
       external create :
         strength::float => quality::float => resolution::float => kernelSize::float => unit => t =
-        "BlurFilter" [@@bs.new] [@@bs.scope "Filters"] [@@bs.module ("pixi.js", "PIXI")];
+        "BlurFilter" [@@bs.new] [@@bs.scope "filters"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        Sets the strength of both the blurX and blurY properties simultaneously
        */
@@ -6094,7 +6082,7 @@ module Impl (T: TYPES) => {
       type t = T.blurXFilter;
       external create :
         strength::float => quality::float => resolution::float => kernelSize::float => unit => t =
-        "BlurXFilter" [@@bs.new] [@@bs.scope "Filters"] [@@bs.module ("pixi.js", "PIXI")];
+        "BlurXFilter" [@@bs.new] [@@bs.scope "filters"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        Sets the strength of both the blur.
        */
@@ -6189,7 +6177,7 @@ module Impl (T: TYPES) => {
       type t = T.blurYFilter;
       external create :
         strength::float => quality::float => resolution::float => kernelSize::float => unit => t =
-        "BlurYFilter" [@@bs.new] [@@bs.scope "Filters"] [@@bs.module ("pixi.js", "PIXI")];
+        "BlurYFilter" [@@bs.new] [@@bs.scope "filters"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        Sets the strength of both the blur.
        */
@@ -6295,7 +6283,7 @@ module Impl (T: TYPES) => {
        */
       type t = T.colorMatrixFilter;
       external create : unit => t =
-        "ColorMatrixFilter" [@@bs.new] [@@bs.scope "Filters"] [@@bs.module ("pixi.js", "PIXI")];
+        "ColorMatrixFilter" [@@bs.new] [@@bs.scope "filters"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The matrix of the color matrix filter
        */
@@ -6403,7 +6391,7 @@ module Impl (T: TYPES) => {
        */
       type t = T.displacementFilter;
       external create : sprite::T.sprite => scale::float => unit => t =
-        "DisplacementFilter" [@@bs.new] [@@bs.scope "Filters"] [@@bs.module ("pixi.js", "PIXI")];
+        "DisplacementFilter" [@@bs.new] [@@bs.scope "filters"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The texture used for the displacement map. Must be power of 2 sized texture.
        */
@@ -6491,7 +6479,7 @@ module Impl (T: TYPES) => {
        */
       type t = T.fxaaFilter;
       external create : unit => t =
-        "FXAAFilter" [@@bs.new] [@@bs.scope "Filters"] [@@bs.module ("pixi.js", "PIXI")];
+        "FXAAFilter" [@@bs.new] [@@bs.scope "filters"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The vertex shader.
        */
@@ -6567,7 +6555,7 @@ module Impl (T: TYPES) => {
        */
       type t = T.noiseFilter;
       external create : noise::float => seed::float => unit => t =
-        "NoiseFilter" [@@bs.new] [@@bs.scope "Filters"] [@@bs.module ("pixi.js", "PIXI")];
+        "NoiseFilter" [@@bs.new] [@@bs.scope "filters"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The amount of noise to apply, this value should be in the range (0, 1].
        */
@@ -6659,7 +6647,7 @@ module Impl (T: TYPES) => {
        */
       type t = T.voidFilter;
       external create : unit => t =
-        "VoidFilter" [@@bs.new] [@@bs.scope "Filters"] [@@bs.module ("pixi.js", "PIXI")];
+        "VoidFilter" [@@bs.new] [@@bs.scope "filters"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The vertex shader.
        */
@@ -6737,7 +6725,7 @@ module Impl (T: TYPES) => {
        */
       type t = T.interactionData;
       external create : unit => t =
-        "InteractionData" [@@bs.new] [@@bs.scope "Interaction"] [@@bs.module ("pixi.js", "PIXI")];
+        "InteractionData" [@@bs.new] [@@bs.scope "interaction"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        This point stores the global coords of where the touch/mouse event happened
        */
@@ -6890,7 +6878,7 @@ module Impl (T: TYPES) => {
        */
       type t = T.interactionEvent;
       external create : unit => t =
-        "InteractionEvent" [@@bs.new] [@@bs.scope "Interaction"] [@@bs.module ("pixi.js", "PIXI")];
+        "InteractionEvent" [@@bs.new] [@@bs.scope "interaction"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        Whether this event will continue propagating in the tree
        */
@@ -6956,7 +6944,7 @@ module Impl (T: TYPES) => {
         unit =>
         t =
         "InteractionManager"
-        [@@bs.new] [@@bs.scope "Interaction"] [@@bs.module ("pixi.js", "PIXI")];
+        [@@bs.new] [@@bs.scope "interaction"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The renderer this interaction manager works for.
        */
@@ -7076,7 +7064,7 @@ module Impl (T: TYPES) => {
     module Resource = {
       type t = T.resource;
       external create : unit => t =
-        "Resource" [@@bs.new] [@@bs.scope "Loaders"] [@@bs.module ("pixi.js", "PIXI")];
+        "Resource" [@@bs.new] [@@bs.scope "loaders"] [@@bs.module ("pixi.js", "PIXI")];
     };
     /*
      The new loader, extends Resource Loader by Chad Engler: https://github.com/englercj/resource-loader
@@ -7165,7 +7153,7 @@ module Impl (T: TYPES) => {
        */
       type t = T.loader;
       external create : baseUrl::string => concurrency::float => unit => t =
-        "Loader" [@@bs.new] [@@bs.scope "Loaders"] [@@bs.module ("pixi.js", "PIXI")];
+        "Loader" [@@bs.new] [@@bs.scope "loaders"] [@@bs.module ("pixi.js", "PIXI")];
     };
   };
   module Mesh = {
@@ -7185,7 +7173,7 @@ module Impl (T: TYPES) => {
         drawMode::float =>
         unit =>
         t =
-        "Mesh" [@@bs.new] [@@bs.scope "Mesh"] [@@bs.module ("pixi.js", "PIXI")];
+        "Mesh" [@@bs.new] [@@bs.scope "mesh"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The Uvs of the Mesh
        */
@@ -7651,7 +7639,7 @@ module Impl (T: TYPES) => {
         bottomHeight::unit /* unknown js type: int */ =>
         unit =>
         t =
-        "NineSlicePlane" [@@bs.new] [@@bs.scope "Mesh"] [@@bs.module ("pixi.js", "PIXI")];
+        "NineSlicePlane" [@@bs.new] [@@bs.scope "mesh"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The width of the NineSlicePlane, setting this will actually modify the vertices and UV's of this plane
        */
@@ -8121,7 +8109,7 @@ module Impl (T: TYPES) => {
        */
       type t = T.plane;
       external create : texture::T.texture => verticesX::float => verticesY::float => unit => t =
-        "Plane" [@@bs.new] [@@bs.scope "Mesh"] [@@bs.module ("pixi.js", "PIXI")];
+        "Plane" [@@bs.new] [@@bs.scope "mesh"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The Uvs of the Mesh
        */
@@ -8543,7 +8531,7 @@ module Impl (T: TYPES) => {
        */
       type t = T.rope;
       external create : texture::T.texture => points::array T.point => unit => t =
-        "Rope" [@@bs.new] [@@bs.scope "Mesh"] [@@bs.module ("pixi.js", "PIXI")];
+        "Rope" [@@bs.new] [@@bs.scope "mesh"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        An array of points that determine the rope
        */
@@ -9041,7 +9029,7 @@ module Impl (T: TYPES) => {
         batchSize::float =>
         unit =>
         t =
-        "ParticleContainer" [@@bs.new] [@@bs.scope "Particles"] [@@bs.module ("pixi.js", "PIXI")];
+        "ParticleContainer" [@@bs.new] [@@bs.scope "particles"] [@@bs.module ("pixi.js", "PIXI")];
       external interactiveChildren : t => Js.boolean = "" [@@bs.get];
       external setInteractiveChildren : t => Js.boolean => unit = "interactiveChildren" [@@bs.set];
       /*
@@ -9381,7 +9369,7 @@ module Impl (T: TYPES) => {
        */
       type t = T.basePrepare;
       external create : renderer::T.systemRenderer => unit => t =
-        "BasePrepare" [@@bs.new] [@@bs.scope "Prepare"] [@@bs.module ("pixi.js", "PIXI")];
+        "BasePrepare" [@@bs.new] [@@bs.scope "prepare"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The limiter to be used to control how quickly items are prepared.
        */
@@ -9436,7 +9424,7 @@ module Impl (T: TYPES) => {
        */
       type t = T.canvasPrepare;
       external create : renderer::T.canvasRenderer => unit => t =
-        "CanvasPrepare" [@@bs.new] [@@bs.scope "Prepare"] [@@bs.module ("pixi.js", "PIXI")];
+        "CanvasPrepare" [@@bs.new] [@@bs.scope "prepare"] [@@bs.module ("pixi.js", "PIXI")];
     };
     /*
      CountLimiter limits the number of items handled by a {@link PIXI.prepare.BasePrepare} to a specified
@@ -9449,7 +9437,7 @@ module Impl (T: TYPES) => {
        */
       type t = T.countLimiter;
       external create : maxItemsPerFrame::float => unit => t =
-        "CountLimiter" [@@bs.new] [@@bs.scope "Prepare"] [@@bs.module ("pixi.js", "PIXI")];
+        "CountLimiter" [@@bs.new] [@@bs.scope "prepare"] [@@bs.module ("pixi.js", "PIXI")];
     };
     /*
      The prepare manager provides functionality to upload content to the GPU.
@@ -9464,7 +9452,7 @@ module Impl (T: TYPES) => {
        */
       type t = T.webGLPrepare;
       external create : renderer::T.webGLRenderer => unit => t =
-        "WebGLPrepare" [@@bs.new] [@@bs.scope "Prepare"] [@@bs.module ("pixi.js", "PIXI")];
+        "WebGLPrepare" [@@bs.new] [@@bs.scope "prepare"] [@@bs.module ("pixi.js", "PIXI")];
     };
   };
   /*
@@ -9548,8 +9536,6 @@ type spriteMaskFilter;
 
 type blendModeManager;
 
-type filterState;
-
 type filterManager;
 
 type maskManager;
@@ -9605,8 +9591,6 @@ type bitmapText;
 type textureTransform;
 
 type tilingSprite;
-
-type cacheData;
 
 type tilingSpriteRenderer;
 
@@ -9695,7 +9679,6 @@ include
     type nonrec filter = filter;
     type nonrec spriteMaskFilter = spriteMaskFilter;
     type nonrec blendModeManager = blendModeManager;
-    type nonrec filterState = filterState;
     type nonrec filterManager = filterManager;
     type nonrec maskManager = maskManager;
     type nonrec stencilManager = stencilManager;
@@ -9724,7 +9707,6 @@ include
     type nonrec bitmapText = bitmapText;
     type nonrec textureTransform = textureTransform;
     type nonrec tilingSprite = tilingSprite;
-    type nonrec cacheData = cacheData;
     type nonrec tilingSpriteRenderer = tilingSpriteRenderer;
     type nonrec blurFilter = blurFilter;
     type nonrec blurXFilter = blurXFilter;

@@ -30,11 +30,7 @@ var camelCase = function(s) {
 };
 
 var modulePathFromLongname = function(longname) {
-  // var cleanLongname = cleanupLongname(longname);
-  // var components = cleanLongname.split(".");
-  // return _.map(components, titleCase);
-  // return cleanupLongname(longname).split(".");
-  return longname.split(".");
+  return longname.split(".").map(titleCase);
 };
 
 var mkModule = function() {
@@ -161,10 +157,9 @@ ${descComment} external set${titleCase(
       // TODO: support optionals
       return `${p.name}::${jsToBsType(modules, p.type.names)}`;
     });
-    var scope = path.slice(1, -2);
-    var scopeAttr = _.isEqual(scope, [])
+    var scopeAttr = _.isEqual(item.scope, [])
       ? ""
-      : `[@@bs.scope (${scope.map(s => `"${s}"`).join(",")})]`;
+      : `[@@bs.scope (${item.scope.map(s => `"${s}"`).join(",")})]`;
     return `external ${name} : ${paramTypes
       .map(s => s + " => ")
       .join(
@@ -223,11 +218,7 @@ function cleanupLongname(longname) {
     // ->   'PIXI.accessibility.AccessibilityManager#debug'
     .replace(/(\w+)\.(\1)(\W|$)/, "$1$3")
     // Strip 'PIXI.' namespace prefix
-    .replace(/^PIXI\./, "")
-    // Capitalize module names
-    .split(".")
-    .map(titleCase)
-    .join(".");
+    .replace(/^PIXI\./, "");
   // if (longname !== replaced) {
   //   console.error(`replacing (${longname}) with (${replaced})`);
   // }
@@ -268,15 +259,16 @@ var addConstructor = (module, datum) => {
     }
   });
 
-  console.error(`constructor ${datum.name} has params:`);
-  ppJson(params);
+  // console.error(`constructor ${datum.name} has params:`);
+  // ppJson(params);
 
   if (module.items["create"]) {
     console.error(`constructor for class ${datum.name} duplicated`);
   } else {
     module.items["create"] = {
-      name: datum.name,
       type: "constructor",
+      name: datum.name,
+      scope: datum.longname.split(".").slice(0, -1),
       params
     };
   }
@@ -302,10 +294,10 @@ exports.publish = function(taffyData, opts) {
 
   data().each(function(datum) {
     if (datum.kind === "class" && !datum.deprecated) {
-      // if (/Application$/.test(datum.longname)) {
+      // if (/FilterState$/.test(datum.longname)) {
       //   ppJson(datum);
       // }
-      var isPrivateClass = datum.access === "private";
+      var isPrivateClass = datum.access === "private" || datum.ignore === true;
       var m = ensureModuleExists(
         modules,
         modulePathFromLongname(datum.longname)
@@ -320,7 +312,9 @@ exports.publish = function(taffyData, opts) {
       };
       if (!isPrivateClass) {
         ensureClassExists(classes, camelCase(datum.name));
-        addConstructor(m, datum);
+        if (datum.scope === "static") {
+          addConstructor(m, datum);
+        }
       }
     }
   });
