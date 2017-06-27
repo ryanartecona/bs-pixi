@@ -1,4 +1,4 @@
-module type PixiTypes = {
+module type TYPES = {
   type accessibilityManager;
   type application;
   type shader;
@@ -90,7 +90,7 @@ module type PixiTypes = {
   type webGLPrepare;
 };
 
-module Impl = {
+module Impl (T: TYPES) => {
   module Accessibility = {
     /*
      The Accessibility manager recreates the ability to tab and have content read by screen
@@ -113,7 +113,11 @@ module Impl = {
 
        An instance of this class is automatically created by default, and can be found at renderer.plugins.accessibility
        */
-      type t;
+      type t = T.accessibilityManager;
+      external create :
+        renderer::unit /* unknown js type: PIXI.CanvasRenderer|PIXI.WebGLRenderer */ => unit => t =
+        "AccessibilityManager"
+        [@@bs.new] [@@bs.scope "Accessibility"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        Setting this to true will visually show the divs.
        */
@@ -125,11 +129,11 @@ module Impl = {
       /*
        The renderer this accessibility manager works for.
        */
-      external renderer : t => SystemRenderer.t = "" [@@bs.get];
+      external renderer : t => T.systemRenderer = "" [@@bs.get];
       /*
        The renderer this accessibility manager works for.
        */
-      external setRenderer : t => SystemRenderer.t => unit = "renderer" [@@bs.set];
+      external setRenderer : t => T.systemRenderer => unit = "renderer" [@@bs.set];
     };
   };
   /*
@@ -143,7 +147,9 @@ module Impl = {
      This class automatically creates the renderer, ticker
      and root container.
      */
-    type t;
+    type t = T.application;
+    external create : options::unit /* unknown js type: object */ => unit => t =
+      "Application" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The default options, so we mixin functionality later.
      */
@@ -166,19 +172,19 @@ module Impl = {
     /*
      The root display container that's rendered.
      */
-    external stage : t => Container.t = "" [@@bs.get];
+    external stage : t => T.container = "" [@@bs.get];
     /*
      The root display container that's rendered.
      */
-    external setStage : t => Container.t => unit = "stage" [@@bs.set];
+    external setStage : t => T.container => unit = "stage" [@@bs.set];
     /*
      Ticker for doing render updates.
      */
-    external ticker : t => Ticker.Ticker.t = "" [@@bs.get];
+    external ticker : t => T.ticker = "" [@@bs.get];
     /*
      Ticker for doing render updates.
      */
-    external setTicker : t => Ticker.Ticker.t => unit = "ticker" [@@bs.set];
+    external setTicker : t => T.ticker => unit = "ticker" [@@bs.set];
     /*
      Reference to the renderer's canvas element.
      */
@@ -186,15 +192,15 @@ module Impl = {
     /*
      Reference to the renderer's screen rectangle. Its safe to use as filterArea or hitArea for whole screen
      */
-    external screen : t => Rectangle.t = "" [@@bs.get];
+    external screen : t => T.rectangle = "" [@@bs.get];
     /*
      Loader instance to help with asset loading.
      */
-    external loader : t => Loaders.Loader.t = "" [@@bs.get];
+    external loader : t => T.loader = "" [@@bs.get];
     /*
      Loader instance to help with asset loading.
      */
-    external setLoader : t => Loaders.Loader.t => unit = "loader" [@@bs.set];
+    external setLoader : t => T.loader => unit = "loader" [@@bs.set];
   };
   /*
    Wrapper class, webGL Shader for Pixi.
@@ -205,7 +211,14 @@ module Impl = {
      Wrapper class, webGL Shader for Pixi.
      Adds precision string if vertexSrc or fragmentSrc have no mention of it.
      */
-    type t;
+    type t = T.shader;
+    external create :
+      gl::ReasonJs.Gl.glT =>
+      vertexSrc::unit /* unknown js type: string|Array.<string> */ =>
+      fragmentSrc::unit /* unknown js type: string|Array.<string> */ =>
+      unit =>
+      t =
+      "Shader" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
   };
   /*
    'Builder' pattern for bounds rectangles
@@ -218,7 +231,8 @@ module Impl = {
      Axis-Aligned Bounding Box
      It is not a shape! Its mutable thing, no 'EMPTY' or that kind of problems
      */
-    type t;
+    type t = T.bounds;
+    external create : unit => t = "Bounds" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     external minX : t => float = "" [@@bs.get];
     external setMinX : t => float => unit = "minX" [@@bs.set];
     external minY : t => float = "" [@@bs.get];
@@ -243,11 +257,12 @@ module Impl = {
      <pre class="prettyprint source lang-js"><code>let container = new PIXI.Container();
      container.addChild(sprite);</code></pre>
      */
-    type t;
+    type t = T.container;
+    external create : unit => t = "Container" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The array of children of this container.
      */
-    external children : t => array DisplayObject.t = "" [@@bs.get];
+    external children : t => array T.displayObject = "" [@@bs.get];
     /*
      The width of the Container, setting this will actually modify the scale to achieve the value set
      */
@@ -278,12 +293,12 @@ module Impl = {
      World transform and local transform of this object.
      This will become read-only later, please do not assign anything there unless you know what are you doing
      */
-    external transform : t => TransformBase.t = "" [@@bs.get];
+    external transform : t => T.transformBase = "" [@@bs.get];
     /*
      World transform and local transform of this object.
      This will become read-only later, please do not assign anything there unless you know what are you doing
      */
-    external setTransform : t => TransformBase.t => unit = "transform" [@@bs.set];
+    external setTransform : t => T.transformBase => unit = "transform" [@@bs.set];
     /*
      The opacity of the object.
      */
@@ -323,7 +338,7 @@ module Impl = {
     /*
      The display object container that contains this display object.
      */
-    external parent : t => Container.t = "" [@@bs.get];
+    external parent : t => T.container = "" [@@bs.get];
     /*
      The multiplied alpha of the displayObject
      */
@@ -334,14 +349,14 @@ module Impl = {
 
      Also works as an interaction mask
      */
-    external filterArea : t => Rectangle.t = "" [@@bs.get];
+    external filterArea : t => T.rectangle = "" [@@bs.get];
     /*
      The area the filter is applied to. This is used as more of an optimisation
      rather than figuring out the dimensions of the displayObject each frame you can set this rectangle
 
      Also works as an interaction mask
      */
-    external setFilterArea : t => Rectangle.t => unit = "filterArea" [@@bs.set];
+    external setFilterArea : t => T.rectangle => unit = "filterArea" [@@bs.set];
     /*
      The position of the displayObject on the x axis relative to the local coordinates of the parent.
      An alias to position.x
@@ -365,11 +380,11 @@ module Impl = {
     /*
      Current transform of the object based on world (parent) factors
      */
-    external worldTransform : t => Matrix.t = "" [@@bs.get];
+    external worldTransform : t => T.matrix = "" [@@bs.get];
     /*
      Current transform of the object based on local factors: position, scale, other stuff
      */
-    external localTransform : t => Matrix.t = "" [@@bs.get];
+    external localTransform : t => T.matrix = "" [@@bs.get];
     /*
      The coordinate of the object relative to the local coordinates of the parent.
      Assignment by value since pixi-v4.
@@ -410,12 +425,12 @@ module Impl = {
      The skew factor for the object in radians.
      Assignment by value since pixi-v4.
      */
-    external skew : t => ObservablePoint.t = "" [@@bs.get];
+    external skew : t => T.observablePoint = "" [@@bs.get];
     /*
      The skew factor for the object in radians.
      Assignment by value since pixi-v4.
      */
-    external setSkew : t => ObservablePoint.t => unit = "skew" [@@bs.set];
+    external setSkew : t => T.observablePoint => unit = "skew" [@@bs.set];
     /*
      The rotation of the object in radians.
      */
@@ -451,7 +466,7 @@ module Impl = {
      To remove filters simply set this property to 'null'</li>
      </ul>
      */
-    external filters : t => array Filter.t = "" [@@bs.get];
+    external filters : t => array T.filter = "" [@@bs.get];
     /*
      Sets the filters for the displayObject.
 
@@ -460,7 +475,7 @@ module Impl = {
      To remove filters simply set this property to 'null'</li>
      </ul>
      */
-    external setFilters : t => array Filter.t => unit = "filters" [@@bs.set];
+    external setFilters : t => array T.filter => unit = "filters" [@@bs.set];
     /*
      Set this to true if you want this display object to be cached as a bitmap.
      This basically takes a snap shot of the display object as it is at that moment. It can
@@ -537,17 +552,18 @@ module Impl = {
      The base class for all objects that are rendered on the screen.
      This is an abstract class and should not be used on its own rather it should be extended.
      */
-    type t;
+    type t = T.displayObject;
+    external create : unit => t = "DisplayObject" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      World transform and local transform of this object.
      This will become read-only later, please do not assign anything there unless you know what are you doing
      */
-    external transform : t => TransformBase.t = "" [@@bs.get];
+    external transform : t => T.transformBase = "" [@@bs.get];
     /*
      World transform and local transform of this object.
      This will become read-only later, please do not assign anything there unless you know what are you doing
      */
-    external setTransform : t => TransformBase.t => unit = "transform" [@@bs.set];
+    external setTransform : t => T.transformBase => unit = "transform" [@@bs.set];
     /*
      The opacity of the object.
      */
@@ -587,7 +603,7 @@ module Impl = {
     /*
      The display object container that contains this display object.
      */
-    external parent : t => Container.t = "" [@@bs.get];
+    external parent : t => T.container = "" [@@bs.get];
     /*
      The multiplied alpha of the displayObject
      */
@@ -598,14 +614,14 @@ module Impl = {
 
      Also works as an interaction mask
      */
-    external filterArea : t => Rectangle.t = "" [@@bs.get];
+    external filterArea : t => T.rectangle = "" [@@bs.get];
     /*
      The area the filter is applied to. This is used as more of an optimisation
      rather than figuring out the dimensions of the displayObject each frame you can set this rectangle
 
      Also works as an interaction mask
      */
-    external setFilterArea : t => Rectangle.t => unit = "filterArea" [@@bs.set];
+    external setFilterArea : t => T.rectangle => unit = "filterArea" [@@bs.set];
     /*
      The position of the displayObject on the x axis relative to the local coordinates of the parent.
      An alias to position.x
@@ -629,11 +645,11 @@ module Impl = {
     /*
      Current transform of the object based on world (parent) factors
      */
-    external worldTransform : t => Matrix.t = "" [@@bs.get];
+    external worldTransform : t => T.matrix = "" [@@bs.get];
     /*
      Current transform of the object based on local factors: position, scale, other stuff
      */
-    external localTransform : t => Matrix.t = "" [@@bs.get];
+    external localTransform : t => T.matrix = "" [@@bs.get];
     /*
      The coordinate of the object relative to the local coordinates of the parent.
      Assignment by value since pixi-v4.
@@ -674,12 +690,12 @@ module Impl = {
      The skew factor for the object in radians.
      Assignment by value since pixi-v4.
      */
-    external skew : t => ObservablePoint.t = "" [@@bs.get];
+    external skew : t => T.observablePoint = "" [@@bs.get];
     /*
      The skew factor for the object in radians.
      Assignment by value since pixi-v4.
      */
-    external setSkew : t => ObservablePoint.t => unit = "skew" [@@bs.set];
+    external setSkew : t => T.observablePoint => unit = "skew" [@@bs.set];
     /*
      The rotation of the object in radians.
      */
@@ -715,7 +731,7 @@ module Impl = {
      To remove filters simply set this property to 'null'</li>
      </ul>
      */
-    external filters : t => array Filter.t = "" [@@bs.get];
+    external filters : t => array T.filter = "" [@@bs.get];
     /*
      Sets the filters for the displayObject.
 
@@ -724,7 +740,7 @@ module Impl = {
      To remove filters simply set this property to 'null'</li>
      </ul>
      */
-    external setFilters : t => array Filter.t => unit = "filters" [@@bs.set];
+    external setFilters : t => array T.filter => unit = "filters" [@@bs.set];
     /*
      Set this to true if you want this display object to be cached as a bitmap.
      This basically takes a snap shot of the display object as it is at that moment. It can
@@ -809,39 +825,40 @@ module Impl = {
      Generic class to deal with traditional 2D matrix transforms
      local transformation is calculated from position,scale,skew and rotation
      */
-    type t;
+    type t = T.transform;
+    external create : unit => t = "Transform" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The coordinate of the object relative to the local coordinates of the parent.
      */
-    external position : t => Point.t = "" [@@bs.get];
+    external position : t => T.point = "" [@@bs.get];
     /*
      The coordinate of the object relative to the local coordinates of the parent.
      */
-    external setPosition : t => Point.t => unit = "position" [@@bs.set];
+    external setPosition : t => T.point => unit = "position" [@@bs.set];
     /*
      The scale factor of the object.
      */
-    external scale : t => Point.t = "" [@@bs.get];
+    external scale : t => T.point = "" [@@bs.get];
     /*
      The scale factor of the object.
      */
-    external setScale : t => Point.t => unit = "scale" [@@bs.set];
+    external setScale : t => T.point => unit = "scale" [@@bs.set];
     /*
      The skew amount, on the x and y axis.
      */
-    external skew : t => ObservablePoint.t = "" [@@bs.get];
+    external skew : t => T.observablePoint = "" [@@bs.get];
     /*
      The skew amount, on the x and y axis.
      */
-    external setSkew : t => ObservablePoint.t => unit = "skew" [@@bs.set];
+    external setSkew : t => T.observablePoint => unit = "skew" [@@bs.set];
     /*
      The pivot point of the displayObject that it rotates around
      */
-    external pivot : t => Point.t = "" [@@bs.get];
+    external pivot : t => T.point = "" [@@bs.get];
     /*
      The pivot point of the displayObject that it rotates around
      */
-    external setPivot : t => Point.t => unit = "pivot" [@@bs.set];
+    external setPivot : t => T.point => unit = "pivot" [@@bs.set];
     /*
      The rotation of the object in radians.
      */
@@ -853,19 +870,19 @@ module Impl = {
     /*
      The global matrix transform. It can be swapped temporarily by some functions like getLocalBounds()
      */
-    external worldTransform : t => Matrix.t = "" [@@bs.get];
+    external worldTransform : t => T.matrix = "" [@@bs.get];
     /*
      The global matrix transform. It can be swapped temporarily by some functions like getLocalBounds()
      */
-    external setWorldTransform : t => Matrix.t => unit = "worldTransform" [@@bs.set];
+    external setWorldTransform : t => T.matrix => unit = "worldTransform" [@@bs.set];
     /*
      The local matrix transform
      */
-    external localTransform : t => Matrix.t = "" [@@bs.get];
+    external localTransform : t => T.matrix = "" [@@bs.get];
     /*
      The local matrix transform
      */
-    external setLocalTransform : t => Matrix.t => unit = "localTransform" [@@bs.set];
+    external setLocalTransform : t => T.matrix => unit = "localTransform" [@@bs.set];
   };
   /*
    Generic class to deal with traditional 2D matrix transforms
@@ -874,23 +891,24 @@ module Impl = {
     /*
      Generic class to deal with traditional 2D matrix transforms
      */
-    type t;
+    type t = T.transformBase;
+    external create : unit => t = "TransformBase" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The global matrix transform. It can be swapped temporarily by some functions like getLocalBounds()
      */
-    external worldTransform : t => Matrix.t = "" [@@bs.get];
+    external worldTransform : t => T.matrix = "" [@@bs.get];
     /*
      The global matrix transform. It can be swapped temporarily by some functions like getLocalBounds()
      */
-    external setWorldTransform : t => Matrix.t => unit = "worldTransform" [@@bs.set];
+    external setWorldTransform : t => T.matrix => unit = "worldTransform" [@@bs.set];
     /*
      The local matrix transform
      */
-    external localTransform : t => Matrix.t = "" [@@bs.get];
+    external localTransform : t => T.matrix = "" [@@bs.get];
     /*
      The local matrix transform
      */
-    external setLocalTransform : t => Matrix.t => unit = "localTransform" [@@bs.set];
+    external setLocalTransform : t => T.matrix => unit = "localTransform" [@@bs.set];
   };
   /*
    Transform that takes care about its versions
@@ -899,39 +917,40 @@ module Impl = {
     /*
      Transform that takes care about its versions
      */
-    type t;
+    type t = T.transformStatic;
+    external create : unit => t = "TransformStatic" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The coordinate of the object relative to the local coordinates of the parent.
      */
-    external position : t => ObservablePoint.t = "" [@@bs.get];
+    external position : t => T.observablePoint = "" [@@bs.get];
     /*
      The coordinate of the object relative to the local coordinates of the parent.
      */
-    external setPosition : t => ObservablePoint.t => unit = "position" [@@bs.set];
+    external setPosition : t => T.observablePoint => unit = "position" [@@bs.set];
     /*
      The scale factor of the object.
      */
-    external scale : t => ObservablePoint.t = "" [@@bs.get];
+    external scale : t => T.observablePoint = "" [@@bs.get];
     /*
      The scale factor of the object.
      */
-    external setScale : t => ObservablePoint.t => unit = "scale" [@@bs.set];
+    external setScale : t => T.observablePoint => unit = "scale" [@@bs.set];
     /*
      The pivot point of the displayObject that it rotates around
      */
-    external pivot : t => ObservablePoint.t = "" [@@bs.get];
+    external pivot : t => T.observablePoint = "" [@@bs.get];
     /*
      The pivot point of the displayObject that it rotates around
      */
-    external setPivot : t => ObservablePoint.t => unit = "pivot" [@@bs.set];
+    external setPivot : t => T.observablePoint => unit = "pivot" [@@bs.set];
     /*
      The skew amount, on the x and y axis.
      */
-    external skew : t => ObservablePoint.t = "" [@@bs.get];
+    external skew : t => T.observablePoint = "" [@@bs.get];
     /*
      The skew amount, on the x and y axis.
      */
-    external setSkew : t => ObservablePoint.t => unit = "skew" [@@bs.set];
+    external setSkew : t => T.observablePoint => unit = "skew" [@@bs.set];
     /*
      The rotation of the object in radians.
      */
@@ -943,19 +962,19 @@ module Impl = {
     /*
      The global matrix transform. It can be swapped temporarily by some functions like getLocalBounds()
      */
-    external worldTransform : t => Matrix.t = "" [@@bs.get];
+    external worldTransform : t => T.matrix = "" [@@bs.get];
     /*
      The global matrix transform. It can be swapped temporarily by some functions like getLocalBounds()
      */
-    external setWorldTransform : t => Matrix.t => unit = "worldTransform" [@@bs.set];
+    external setWorldTransform : t => T.matrix => unit = "worldTransform" [@@bs.set];
     /*
      The local matrix transform
      */
-    external localTransform : t => Matrix.t = "" [@@bs.get];
+    external localTransform : t => T.matrix = "" [@@bs.get];
     /*
      The local matrix transform
      */
-    external setLocalTransform : t => Matrix.t => unit = "localTransform" [@@bs.set];
+    external setLocalTransform : t => T.matrix => unit = "localTransform" [@@bs.set];
   };
   /*
    The Graphics class contains methods used to draw primitive shapes such as lines, circles and
@@ -966,7 +985,9 @@ module Impl = {
      The Graphics class contains methods used to draw primitive shapes such as lines, circles and
      rectangles to the display, and to color and fill them.
      */
-    type t;
+    type t = T.graphics;
+    external create : nativeLines::Js.boolean => unit => t =
+      "Graphics" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The alpha value used when filling the Graphics object.
      */
@@ -1078,7 +1099,7 @@ module Impl = {
     /*
      The array of children of this container.
      */
-    external children : t => array DisplayObject.t = "" [@@bs.get];
+    external children : t => array T.displayObject = "" [@@bs.get];
     /*
      The width of the Container, setting this will actually modify the scale to achieve the value set
      */
@@ -1109,12 +1130,12 @@ module Impl = {
      World transform and local transform of this object.
      This will become read-only later, please do not assign anything there unless you know what are you doing
      */
-    external transform : t => TransformBase.t = "" [@@bs.get];
+    external transform : t => T.transformBase = "" [@@bs.get];
     /*
      World transform and local transform of this object.
      This will become read-only later, please do not assign anything there unless you know what are you doing
      */
-    external setTransform : t => TransformBase.t => unit = "transform" [@@bs.set];
+    external setTransform : t => T.transformBase => unit = "transform" [@@bs.set];
     /*
      The opacity of the object.
      */
@@ -1154,7 +1175,7 @@ module Impl = {
     /*
      The display object container that contains this display object.
      */
-    external parent : t => Container.t = "" [@@bs.get];
+    external parent : t => T.container = "" [@@bs.get];
     /*
      The multiplied alpha of the displayObject
      */
@@ -1165,14 +1186,14 @@ module Impl = {
 
      Also works as an interaction mask
      */
-    external filterArea : t => Rectangle.t = "" [@@bs.get];
+    external filterArea : t => T.rectangle = "" [@@bs.get];
     /*
      The area the filter is applied to. This is used as more of an optimisation
      rather than figuring out the dimensions of the displayObject each frame you can set this rectangle
 
      Also works as an interaction mask
      */
-    external setFilterArea : t => Rectangle.t => unit = "filterArea" [@@bs.set];
+    external setFilterArea : t => T.rectangle => unit = "filterArea" [@@bs.set];
     /*
      The position of the displayObject on the x axis relative to the local coordinates of the parent.
      An alias to position.x
@@ -1196,11 +1217,11 @@ module Impl = {
     /*
      Current transform of the object based on world (parent) factors
      */
-    external worldTransform : t => Matrix.t = "" [@@bs.get];
+    external worldTransform : t => T.matrix = "" [@@bs.get];
     /*
      Current transform of the object based on local factors: position, scale, other stuff
      */
-    external localTransform : t => Matrix.t = "" [@@bs.get];
+    external localTransform : t => T.matrix = "" [@@bs.get];
     /*
      The coordinate of the object relative to the local coordinates of the parent.
      Assignment by value since pixi-v4.
@@ -1241,12 +1262,12 @@ module Impl = {
      The skew factor for the object in radians.
      Assignment by value since pixi-v4.
      */
-    external skew : t => ObservablePoint.t = "" [@@bs.get];
+    external skew : t => T.observablePoint = "" [@@bs.get];
     /*
      The skew factor for the object in radians.
      Assignment by value since pixi-v4.
      */
-    external setSkew : t => ObservablePoint.t => unit = "skew" [@@bs.set];
+    external setSkew : t => T.observablePoint => unit = "skew" [@@bs.set];
     /*
      The rotation of the object in radians.
      */
@@ -1282,7 +1303,7 @@ module Impl = {
      To remove filters simply set this property to 'null'</li>
      </ul>
      */
-    external filters : t => array Filter.t = "" [@@bs.get];
+    external filters : t => array T.filter = "" [@@bs.get];
     /*
      Sets the filters for the displayObject.
 
@@ -1291,7 +1312,7 @@ module Impl = {
      To remove filters simply set this property to 'null'</li>
      </ul>
      */
-    external setFilters : t => array Filter.t => unit = "filters" [@@bs.set];
+    external setFilters : t => array T.filter => unit = "filters" [@@bs.set];
     /*
      <p>Enable interaction events for the DisplayObject. Touch, pointer and mouse
      events will not be emitted unless <code>interactive</code> is set to <code>true</code>.</p>
@@ -1346,7 +1367,19 @@ module Impl = {
     /*
      A GraphicsData object.
      */
-    type t;
+    type t = T.graphicsData;
+    external create :
+      lineWidth::float =>
+      lineColor::float =>
+      lineAlpha::float =>
+      fillColor::float =>
+      fillAlpha::float =>
+      fill::Js.boolean =>
+      nativeLines::Js.boolean =>
+      shape::unit /* unknown js type: PIXI.Circle|PIXI.Rectangle|PIXI.Ellipse|PIXI.Polygon */ =>
+      unit =>
+      t =
+      "GraphicsData" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
   };
   /*
    Renders the graphics object.
@@ -1355,15 +1388,17 @@ module Impl = {
     /*
      Renders the graphics object.
      */
-    type t;
+    type t = T.graphicsRenderer;
+    external create : renderer::T.webGLRenderer => unit => t =
+      "GraphicsRenderer" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The renderer this manager works for.
      */
-    external renderer : t => WebGLRenderer.t = "" [@@bs.get];
+    external renderer : t => T.webGLRenderer = "" [@@bs.get];
     /*
      The renderer this manager works for.
      */
-    external setRenderer : t => WebGLRenderer.t => unit = "renderer" [@@bs.set];
+    external setRenderer : t => T.webGLRenderer => unit = "renderer" [@@bs.set];
   };
   /*
    This shader is used to draw simple primitive shapes for {@link PIXI.Graphics}.
@@ -1372,10 +1407,13 @@ module Impl = {
     /*
      This shader is used to draw simple primitive shapes for {@link PIXI.Graphics}.
      */
-    type t;
+    type t = T.primitiveShader;
+    external create : gl::ReasonJs.Gl.glT => unit => t =
+      "PrimitiveShader" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
   };
   module GroupD8 = {
-    type t;
+    type t = T.groupD8;
+    external create : unit => t = "GroupD8" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
   };
   /*
    The pixi Matrix class as an object, which makes it a lot faster,
@@ -1392,7 +1430,10 @@ module Impl = {
      | c | d | ty|
      | 0 | 0 | 1 |
      */
-    type t;
+    type t = T.matrix;
+    external create :
+      a::float => b::float => c::float => d::float => tx::float => ty::float => unit => t =
+      "Matrix" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     external a : t => float = "" [@@bs.get];
     external setA : t => float => unit = "a" [@@bs.set];
     external b : t => float = "" [@@bs.get];
@@ -1417,7 +1458,15 @@ module Impl = {
      the horizontal axis and y represents the vertical axis.
      An observable point is a point that triggers a callback when the point's position is changed.
      */
-    type t;
+    type t = T.observablePoint;
+    external create :
+      cb::unit /* unknown js type: function */ =>
+      scope::unit /* unknown js type: object */ =>
+      x::float =>
+      y::float =>
+      unit =>
+      t =
+      "ObservablePoint" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The position of the displayObject on the x axis relative to the local coordinates of the parent.
      */
@@ -1444,7 +1493,9 @@ module Impl = {
      The Point object represents a location in a two-dimensional coordinate system, where x represents
      the horizontal axis and y represents the vertical axis.
      */
-    type t;
+    type t = T.point;
+    external create : x::float => y::float => unit => t =
+      "Point" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     external x : t => float = "" [@@bs.get];
     external setX : t => float => unit = "x" [@@bs.set];
     external y : t => float = "" [@@bs.get];
@@ -1457,7 +1508,9 @@ module Impl = {
     /*
      The Circle object can be used to specify a hit area for displayObjects
      */
-    type t;
+    type t = T.circle;
+    external create : x::float => y::float => radius::float => unit => t =
+      "Circle" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     external x : t => float = "" [@@bs.get];
     external setX : t => float => unit = "x" [@@bs.set];
     external y : t => float = "" [@@bs.get];
@@ -1476,7 +1529,9 @@ module Impl = {
     /*
      The Ellipse object can be used to specify a hit area for displayObjects
      */
-    type t;
+    type t = T.ellipse;
+    external create : x::float => y::float => width::float => height::float => unit => t =
+      "Ellipse" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     external x : t => float = "" [@@bs.get];
     external setX : t => float => unit = "x" [@@bs.set];
     external y : t => float = "" [@@bs.get];
@@ -1491,7 +1546,10 @@ module Impl = {
     external type_ : t => float = "type" [@@bs.get];
   };
   module Polygon = {
-    type t;
+    type t = T.polygon;
+    external create :
+      points::unit /* unknown js type: Array.<PIXI.Point>|Array.<number> */ => unit => t =
+      "Polygon" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      An array of the points of this polygon
      */
@@ -1514,7 +1572,9 @@ module Impl = {
      Rectangle object is an area defined by its position, as indicated by its top-left corner
      point (x, y) and by its width and its height.
      */
-    type t;
+    type t = T.rectangle;
+    external create : x::float => y::float => width::float => height::float => unit => t =
+      "Rectangle" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     external x : t => float = "" [@@bs.get];
     external setX : t => float => unit = "x" [@@bs.set];
     external y : t => float = "" [@@bs.get];
@@ -1569,7 +1629,10 @@ module Impl = {
      The Rounded Rectangle object is an area that has nice rounded corners, as indicated by its
      top-left corner point (x, y) and by its width and its height and its radius.
      */
-    type t;
+    type t = T.roundedRectangle;
+    external create :
+      x::float => y::float => width::float => height::float => radius::float => unit => t =
+      "RoundedRectangle" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     external x : t => float = "" [@@bs.get];
     external setX : t => float => unit = "x" [@@bs.set];
     external y : t => float = "" [@@bs.get];
@@ -1594,7 +1657,9 @@ module Impl = {
      The SystemRenderer is the base for a Pixi Renderer. It is extended by the {@link PIXI.CanvasRenderer}
      and {@link PIXI.WebGLRenderer} which can be used for rendering a Pixi scene.
      */
-    type t;
+    type t = T.systemRenderer;
+    external create : system::string => options::unit /* unknown js type: object */ => unit => t =
+      "SystemRenderer" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The supplied constructor options.
      */
@@ -1612,13 +1677,13 @@ module Impl = {
 
      Its safe to use as filterArea or hitArea for whole stage
      */
-    external screen : t => Rectangle.t = "" [@@bs.get];
+    external screen : t => T.rectangle = "" [@@bs.get];
     /*
      Measurements of the screen. (0, 0, screenWidth, screenHeight)
 
      Its safe to use as filterArea or hitArea for whole stage
      */
-    external setScreen : t => Rectangle.t => unit = "screen" [@@bs.set];
+    external setScreen : t => T.rectangle => unit = "screen" [@@bs.set];
     /*
      The canvas element that everything is drawn to
      */
@@ -1725,7 +1790,9 @@ module Impl = {
      be used for browsers that do not support WebGL. Don't forget to add the CanvasRenderer.view to
      your DOM or you will not see anything :)
      */
-    type t;
+    type t = T.canvasRenderer;
+    external create : options::unit /* unknown js type: object */ => unit => t =
+      "CanvasRenderer" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The root canvas 2d context that everything is drawn with.
      */
@@ -1756,11 +1823,11 @@ module Impl = {
     /*
      Instance of a CanvasMaskManager, handles masking when using the canvas renderer.
      */
-    external maskManager : t => CanvasMaskManager.t = "" [@@bs.get];
+    external maskManager : t => T.canvasMaskManager = "" [@@bs.get];
     /*
      Instance of a CanvasMaskManager, handles masking when using the canvas renderer.
      */
-    external setMaskManager : t => CanvasMaskManager.t => unit = "maskManager" [@@bs.set];
+    external setMaskManager : t => T.canvasMaskManager => unit = "maskManager" [@@bs.set];
     /*
      The canvas property used to set the canvas smoothing property.
      */
@@ -1778,11 +1845,11 @@ module Impl = {
     /*
      Collection of methods for extracting data (image, pixels, etc.) from a display object or render texture
      */
-    external extract : t => Extract.CanvasExtract.t = "" [@@bs.get];
+    external extract : t => T.canvasExtract = "" [@@bs.get];
     /*
      Collection of methods for extracting data (image, pixels, etc.) from a display object or render texture
      */
-    external setExtract : t => Extract.CanvasExtract.t => unit = "extract" [@@bs.set];
+    external setExtract : t => T.canvasExtract => unit = "extract" [@@bs.set];
     /*
      The supplied constructor options.
      */
@@ -1800,13 +1867,13 @@ module Impl = {
 
      Its safe to use as filterArea or hitArea for whole stage
      */
-    external screen : t => Rectangle.t = "" [@@bs.get];
+    external screen : t => T.rectangle = "" [@@bs.get];
     /*
      Measurements of the screen. (0, 0, screenWidth, screenHeight)
 
      Its safe to use as filterArea or hitArea for whole stage
      */
-    external setScreen : t => Rectangle.t => unit = "screen" [@@bs.set];
+    external setScreen : t => T.rectangle => unit = "screen" [@@bs.set];
     /*
      The canvas element that everything is drawn to
      */
@@ -1909,7 +1976,9 @@ module Impl = {
     /*
      A set of functions used to handle masking.
      */
-    type t;
+    type t = T.canvasMaskManager;
+    external create : renderer::T.canvasRenderer => unit => t =
+      "CanvasMaskManager" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
   };
   /*
    Creates a Canvas element of the given size.
@@ -1918,7 +1987,9 @@ module Impl = {
     /*
      Creates a Canvas element of the given size.
      */
-    type t;
+    type t = T.canvasRenderTarget;
+    external create : width::float => height::float => resolution::float => unit => t =
+      "CanvasRenderTarget" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The Canvas object that belongs to this CanvasRenderTarget.
      */
@@ -1962,7 +2033,9 @@ module Impl = {
      TextureGarbageCollector. This class manages the GPU and ensures that it does not get clogged
      up with textures that are no longer being used.
      */
-    type t;
+    type t = T.textureGarbageCollector;
+    external create : renderer::T.webGLRenderer => unit => t =
+      "TextureGarbageCollector" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
   };
   /*
    Helper class to create a webGL Texture
@@ -1971,15 +2044,17 @@ module Impl = {
     /*
      Helper class to create a webGL Texture
      */
-    type t;
+    type t = T.textureManager;
+    external create : renderer::T.webGLRenderer => unit => t =
+      "TextureManager" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      A reference to the current renderer
      */
-    external renderer : t => WebGLRenderer.t = "" [@@bs.get];
+    external renderer : t => T.webGLRenderer = "" [@@bs.get];
     /*
      A reference to the current renderer
      */
-    external setRenderer : t => WebGLRenderer.t => unit = "renderer" [@@bs.set];
+    external setRenderer : t => T.webGLRenderer => unit = "renderer" [@@bs.set];
     /*
      The current WebGL rendering context
      */
@@ -2002,7 +2077,9 @@ module Impl = {
      So no need for Sprite Batches or Sprite Clouds.
      Don't forget to add the view to your DOM or you will not see anything :)
      */
-    type t;
+    type t = T.webGLRenderer;
+    external create : options::unit /* unknown js type: object */ => unit => t =
+      "WebGLRenderer" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The type of this renderer as a standardised const
      */
@@ -2014,43 +2091,43 @@ module Impl = {
     /*
      Manages the masks using the stencil buffer.
      */
-    external maskManager : t => MaskManager.t = "" [@@bs.get];
+    external maskManager : t => T.maskManager = "" [@@bs.get];
     /*
      Manages the masks using the stencil buffer.
      */
-    external setMaskManager : t => MaskManager.t => unit = "maskManager" [@@bs.set];
+    external setMaskManager : t => T.maskManager => unit = "maskManager" [@@bs.set];
     /*
      Manages the stencil buffer.
      */
-    external stencilManager : t => StencilManager.t = "" [@@bs.get];
+    external stencilManager : t => T.stencilManager = "" [@@bs.get];
     /*
      Manages the stencil buffer.
      */
-    external setStencilManager : t => StencilManager.t => unit = "stencilManager" [@@bs.set];
+    external setStencilManager : t => T.stencilManager => unit = "stencilManager" [@@bs.set];
     /*
      An empty renderer.
      */
-    external emptyRenderer : t => ObjectRenderer.t = "" [@@bs.get];
+    external emptyRenderer : t => T.objectRenderer = "" [@@bs.get];
     /*
      An empty renderer.
      */
-    external setEmptyRenderer : t => ObjectRenderer.t => unit = "emptyRenderer" [@@bs.set];
+    external setEmptyRenderer : t => T.objectRenderer => unit = "emptyRenderer" [@@bs.set];
     /*
      The currently active ObjectRenderer.
      */
-    external currentRenderer : t => ObjectRenderer.t = "" [@@bs.get];
+    external currentRenderer : t => T.objectRenderer = "" [@@bs.get];
     /*
      The currently active ObjectRenderer.
      */
-    external setCurrentRenderer : t => ObjectRenderer.t => unit = "currentRenderer" [@@bs.set];
+    external setCurrentRenderer : t => T.objectRenderer => unit = "currentRenderer" [@@bs.set];
     /*
      The currently active ObjectRenderer.
      */
-    external state : t => WebGLState.t = "" [@@bs.get];
+    external state : t => T.webGLState = "" [@@bs.get];
     /*
      The currently active ObjectRenderer.
      */
-    external setState : t => WebGLState.t => unit = "state" [@@bs.set];
+    external setState : t => T.webGLState => unit = "state" [@@bs.set];
     /*
      Holds the current state of textures bound to the GPU.
      */
@@ -2063,28 +2140,28 @@ module Impl = {
     /*
      Holds the current shader
      */
-    external _activeShader : t => Shader.t = "" [@@bs.get];
+    external _activeShader : t => T.shader = "" [@@bs.get];
     /*
      Holds the current shader
      */
-    external set_activeShader : t => Shader.t => unit = "_activeShader" [@@bs.set];
+    external set_activeShader : t => T.shader => unit = "_activeShader" [@@bs.set];
     /*
      Holds the current render target
      */
-    external _activeRenderTarget : t => RenderTarget.t = "" [@@bs.get];
+    external _activeRenderTarget : t => T.renderTarget = "" [@@bs.get];
     /*
      Holds the current render target
      */
-    external set_activeRenderTarget : t => RenderTarget.t => unit =
+    external set_activeRenderTarget : t => T.renderTarget => unit =
       "_activeRenderTarget" [@@bs.set];
     /*
      Manages the filters.
      */
-    external filterManager : t => FilterManager.t = "" [@@bs.get];
+    external filterManager : t => T.filterManager = "" [@@bs.get];
     /*
      Manages the filters.
      */
-    external setFilterManager : t => FilterManager.t => unit = "filterManager" [@@bs.set];
+    external setFilterManager : t => T.filterManager => unit = "filterManager" [@@bs.set];
     /*
      Collection of installed plugins. These are included by default in PIXI, but can be excluded
      by creating a custom build. Consult the README for more information about creating custom
@@ -2094,11 +2171,11 @@ module Impl = {
     /*
      Collection of methods for extracting data (image, pixels, etc.) from a display object or render texture
      */
-    external extract : t => Extract.WebGLExtract.t = "" [@@bs.get];
+    external extract : t => T.webGLExtract = "" [@@bs.get];
     /*
      Collection of methods for extracting data (image, pixels, etc.) from a display object or render texture
      */
-    external setExtract : t => Extract.WebGLExtract.t => unit = "extract" [@@bs.set];
+    external setExtract : t => T.webGLExtract => unit = "extract" [@@bs.set];
     /*
      The supplied constructor options.
      */
@@ -2108,13 +2185,13 @@ module Impl = {
 
      Its safe to use as filterArea or hitArea for whole stage
      */
-    external screen : t => Rectangle.t = "" [@@bs.get];
+    external screen : t => T.rectangle = "" [@@bs.get];
     /*
      Measurements of the screen. (0, 0, screenWidth, screenHeight)
 
      Its safe to use as filterArea or hitArea for whole stage
      */
-    external setScreen : t => Rectangle.t => unit = "screen" [@@bs.set];
+    external setScreen : t => T.rectangle => unit = "screen" [@@bs.set];
     /*
      The canvas element that everything is drawn to
      */
@@ -2217,7 +2294,9 @@ module Impl = {
     /*
      A WebGL state machines
      */
-    type t;
+    type t = T.webGLState;
+    external create : gl::ReasonJs.Gl.glT => unit => t =
+      "WebGLState" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The current active state
      */
@@ -2246,7 +2325,14 @@ module Impl = {
     external setGl : t => ReasonJs.Gl.glT => unit = "gl" [@@bs.set];
   };
   module Filter = {
-    type t;
+    type t = T.filter;
+    external create :
+      vertexSrc::string =>
+      fragmentSrc::string =>
+      uniforms::unit /* unknown js type: object */ =>
+      unit =>
+      t =
+      "Filter" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The vertex shader.
      */
@@ -2319,7 +2405,9 @@ module Impl = {
     /*
      The SpriteMaskFilter class
      */
-    type t;
+    type t = T.spriteMaskFilter;
+    external create : sprite::T.sprite => unit => t =
+      "SpriteMaskFilter" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The vertex shader.
      */
@@ -2386,64 +2474,75 @@ module Impl = {
     external setAutoFit : t => Js.boolean => unit = "autoFit" [@@bs.set];
   };
   module BlendModeManager = {
-    type t;
+    type t = T.blendModeManager;
+    external create : renderer::T.webGLRenderer => unit => t =
+      "BlendModeManager" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     external currentBlendMode : t => float = "" [@@bs.get];
     external setCurrentBlendMode : t => float => unit = "currentBlendMode" [@@bs.set];
     /*
      The renderer this manager works for.
      */
-    external renderer : t => WebGLRenderer.t = "" [@@bs.get];
+    external renderer : t => T.webGLRenderer = "" [@@bs.get];
     /*
      The renderer this manager works for.
      */
-    external setRenderer : t => WebGLRenderer.t => unit = "renderer" [@@bs.set];
+    external setRenderer : t => T.webGLRenderer => unit = "renderer" [@@bs.set];
   };
   module FilterState = {
-    type t;
+    type t = T.filterState;
+    external create : unit => t = "FilterState" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
   };
   module FilterManager = {
-    type t;
+    type t = T.filterManager;
+    external create : renderer::T.webGLRenderer => unit => t =
+      "FilterManager" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The renderer this manager works for.
      */
-    external renderer : t => WebGLRenderer.t = "" [@@bs.get];
+    external renderer : t => T.webGLRenderer = "" [@@bs.get];
     /*
      The renderer this manager works for.
      */
-    external setRenderer : t => WebGLRenderer.t => unit = "renderer" [@@bs.set];
+    external setRenderer : t => T.webGLRenderer => unit = "renderer" [@@bs.set];
   };
   module MaskManager = {
-    type t;
+    type t = T.maskManager;
+    external create : renderer::T.webGLRenderer => unit => t =
+      "MaskManager" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The renderer this manager works for.
      */
-    external renderer : t => WebGLRenderer.t = "" [@@bs.get];
+    external renderer : t => T.webGLRenderer = "" [@@bs.get];
     /*
      The renderer this manager works for.
      */
-    external setRenderer : t => WebGLRenderer.t => unit = "renderer" [@@bs.set];
+    external setRenderer : t => T.webGLRenderer => unit = "renderer" [@@bs.set];
   };
   module StencilManager = {
-    type t;
+    type t = T.stencilManager;
+    external create : renderer::T.webGLRenderer => unit => t =
+      "StencilManager" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The renderer this manager works for.
      */
-    external renderer : t => WebGLRenderer.t = "" [@@bs.get];
+    external renderer : t => T.webGLRenderer = "" [@@bs.get];
     /*
      The renderer this manager works for.
      */
-    external setRenderer : t => WebGLRenderer.t => unit = "renderer" [@@bs.set];
+    external setRenderer : t => T.webGLRenderer => unit = "renderer" [@@bs.set];
   };
   module WebGLManager = {
-    type t;
+    type t = T.webGLManager;
+    external create : renderer::T.webGLRenderer => unit => t =
+      "WebGLManager" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The renderer this manager works for.
      */
-    external renderer : t => WebGLRenderer.t = "" [@@bs.get];
+    external renderer : t => T.webGLRenderer = "" [@@bs.get];
     /*
      The renderer this manager works for.
      */
-    external setRenderer : t => WebGLRenderer.t => unit = "renderer" [@@bs.set];
+    external setRenderer : t => T.webGLRenderer => unit = "renderer" [@@bs.set];
   };
   /*
    Base for a common object renderer that can be used as a system renderer plugin.
@@ -2452,15 +2551,16 @@ module Impl = {
     /*
      Base for a common object renderer that can be used as a system renderer plugin.
      */
-    type t;
+    type t = T.objectRenderer;
+    external create : unit => t = "ObjectRenderer" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The renderer this manager works for.
      */
-    external renderer : t => WebGLRenderer.t = "" [@@bs.get];
+    external renderer : t => T.webGLRenderer = "" [@@bs.get];
     /*
      The renderer this manager works for.
      */
-    external setRenderer : t => WebGLRenderer.t => unit = "renderer" [@@bs.set];
+    external setRenderer : t => T.webGLRenderer => unit = "renderer" [@@bs.set];
   };
   /*
    Helper class to create a quad
@@ -2469,7 +2569,9 @@ module Impl = {
     /*
      Helper class to create a quad
      */
-    type t;
+    type t = T.quad;
+    external create : gl::ReasonJs.Gl.glT => state::unit /* unknown js type: object */ => unit => t =
+      "Quad" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      the current WebGL drawing context
      */
@@ -2533,7 +2635,17 @@ module Impl = {
       "vao" [@@bs.set];
   };
   module RenderTarget = {
-    type t;
+    type t = T.renderTarget;
+    external create :
+      gl::ReasonJs.Gl.glT =>
+      width::float =>
+      height::float =>
+      scaleMode::float =>
+      resolution::float =>
+      root::Js.boolean =>
+      unit =>
+      t =
+      "RenderTarget" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The current WebGL drawing context.
      */
@@ -2572,11 +2684,11 @@ module Impl = {
     /*
      The size of the object as a rectangle
      */
-    external size : t => Rectangle.t = "" [@@bs.get];
+    external size : t => T.rectangle = "" [@@bs.get];
     /*
      The size of the object as a rectangle
      */
-    external setSize : t => Rectangle.t => unit = "size" [@@bs.set];
+    external setSize : t => T.rectangle => unit = "size" [@@bs.set];
     /*
      The current resolution / device pixel ratio
      */
@@ -2588,27 +2700,27 @@ module Impl = {
     /*
      The projection matrix
      */
-    external projectionMatrix : t => Matrix.t = "" [@@bs.get];
+    external projectionMatrix : t => T.matrix = "" [@@bs.get];
     /*
      The projection matrix
      */
-    external setProjectionMatrix : t => Matrix.t => unit = "projectionMatrix" [@@bs.set];
+    external setProjectionMatrix : t => T.matrix => unit = "projectionMatrix" [@@bs.set];
     /*
      The object's transform
      */
-    external transform : t => Matrix.t = "" [@@bs.get];
+    external transform : t => T.matrix = "" [@@bs.get];
     /*
      The object's transform
      */
-    external setTransform : t => Matrix.t => unit = "transform" [@@bs.set];
+    external setTransform : t => T.matrix => unit = "transform" [@@bs.set];
     /*
      The frame.
      */
-    external frame : t => Rectangle.t = "" [@@bs.get];
+    external frame : t => T.rectangle = "" [@@bs.get];
     /*
      The frame.
      */
-    external setFrame : t => Rectangle.t => unit = "frame" [@@bs.set];
+    external setFrame : t => T.rectangle => unit = "frame" [@@bs.set];
     /*
      The stencil buffer stores masking data for the render target
      */
@@ -2630,11 +2742,11 @@ module Impl = {
     /*
      The data structure for the stencil masks
      */
-    external stencilMaskStack : t => array Graphics.t = "" [@@bs.get];
+    external stencilMaskStack : t => array T.graphics = "" [@@bs.get];
     /*
      The data structure for the stencil masks
      */
-    external setStencilMaskStack : t => array Graphics.t => unit = "stencilMaskStack" [@@bs.set];
+    external setStencilMaskStack : t => array T.graphics => unit = "stencilMaskStack" [@@bs.set];
     /*
      Stores filter data for the render target
      */
@@ -2676,7 +2788,9 @@ module Impl = {
 
      <pre class="prettyprint source lang-js"><code>let sprite = new PIXI.Sprite.fromImage('assets/image.png');</code></pre>
      */
-    type t;
+    type t = T.sprite;
+    external create : texture::T.texture => unit => t =
+      "Sprite" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      <p>The blend mode to be applied to the sprite. Apply a value of <code>PIXI.BLEND_MODES.NORMAL</code> to reset the blend mode.</p>
      */
@@ -2726,14 +2840,14 @@ module Impl = {
      Setting the anchor to 0.5,0.5 means the texture's origin is centered
      Setting the anchor to 1,1 would mean the texture's origin point will be the bottom right corner
      */
-    external anchor : t => ObservablePoint.t = "" [@@bs.get];
+    external anchor : t => T.observablePoint = "" [@@bs.get];
     /*
      The anchor sets the origin point of the texture.
      The default is 0,0 this means the texture's origin is the top left
      Setting the anchor to 0.5,0.5 means the texture's origin is centered
      Setting the anchor to 1,1 would mean the texture's origin point will be the bottom right corner
      */
-    external setAnchor : t => ObservablePoint.t => unit = "anchor" [@@bs.set];
+    external setAnchor : t => T.observablePoint => unit = "anchor" [@@bs.set];
     /*
      The tint applied to the sprite. This is a hex value.
      A value of 0xFFFFFF will remove any tint effect.
@@ -2747,15 +2861,15 @@ module Impl = {
     /*
      The texture that the sprite is using
      */
-    external texture : t => Texture.t = "" [@@bs.get];
+    external texture : t => T.texture = "" [@@bs.get];
     /*
      The texture that the sprite is using
      */
-    external setTexture : t => Texture.t => unit = "texture" [@@bs.set];
+    external setTexture : t => T.texture => unit = "texture" [@@bs.set];
     /*
      The array of children of this container.
      */
-    external children : t => array DisplayObject.t = "" [@@bs.get];
+    external children : t => array T.displayObject = "" [@@bs.get];
     /*
      <p>Determines if the children to the displayObject can be clicked/touched
      Setting this to false allows pixi to bypass a recursive <code>hitTest</code> function</p>
@@ -2770,12 +2884,12 @@ module Impl = {
      World transform and local transform of this object.
      This will become read-only later, please do not assign anything there unless you know what are you doing
      */
-    external transform : t => TransformBase.t = "" [@@bs.get];
+    external transform : t => T.transformBase = "" [@@bs.get];
     /*
      World transform and local transform of this object.
      This will become read-only later, please do not assign anything there unless you know what are you doing
      */
-    external setTransform : t => TransformBase.t => unit = "transform" [@@bs.set];
+    external setTransform : t => T.transformBase => unit = "transform" [@@bs.set];
     /*
      The opacity of the object.
      */
@@ -2815,7 +2929,7 @@ module Impl = {
     /*
      The display object container that contains this display object.
      */
-    external parent : t => Container.t = "" [@@bs.get];
+    external parent : t => T.container = "" [@@bs.get];
     /*
      The multiplied alpha of the displayObject
      */
@@ -2826,14 +2940,14 @@ module Impl = {
 
      Also works as an interaction mask
      */
-    external filterArea : t => Rectangle.t = "" [@@bs.get];
+    external filterArea : t => T.rectangle = "" [@@bs.get];
     /*
      The area the filter is applied to. This is used as more of an optimisation
      rather than figuring out the dimensions of the displayObject each frame you can set this rectangle
 
      Also works as an interaction mask
      */
-    external setFilterArea : t => Rectangle.t => unit = "filterArea" [@@bs.set];
+    external setFilterArea : t => T.rectangle => unit = "filterArea" [@@bs.set];
     /*
      The position of the displayObject on the x axis relative to the local coordinates of the parent.
      An alias to position.x
@@ -2857,11 +2971,11 @@ module Impl = {
     /*
      Current transform of the object based on world (parent) factors
      */
-    external worldTransform : t => Matrix.t = "" [@@bs.get];
+    external worldTransform : t => T.matrix = "" [@@bs.get];
     /*
      Current transform of the object based on local factors: position, scale, other stuff
      */
-    external localTransform : t => Matrix.t = "" [@@bs.get];
+    external localTransform : t => T.matrix = "" [@@bs.get];
     /*
      The coordinate of the object relative to the local coordinates of the parent.
      Assignment by value since pixi-v4.
@@ -2902,12 +3016,12 @@ module Impl = {
      The skew factor for the object in radians.
      Assignment by value since pixi-v4.
      */
-    external skew : t => ObservablePoint.t = "" [@@bs.get];
+    external skew : t => T.observablePoint = "" [@@bs.get];
     /*
      The skew factor for the object in radians.
      Assignment by value since pixi-v4.
      */
-    external setSkew : t => ObservablePoint.t => unit = "skew" [@@bs.set];
+    external setSkew : t => T.observablePoint => unit = "skew" [@@bs.set];
     /*
      The rotation of the object in radians.
      */
@@ -2943,7 +3057,7 @@ module Impl = {
      To remove filters simply set this property to 'null'</li>
      </ul>
      */
-    external filters : t => array Filter.t = "" [@@bs.get];
+    external filters : t => array T.filter = "" [@@bs.get];
     /*
      Sets the filters for the displayObject.
 
@@ -2952,7 +3066,7 @@ module Impl = {
      To remove filters simply set this property to 'null'</li>
      </ul>
      */
-    external setFilters : t => array Filter.t => unit = "filters" [@@bs.set];
+    external setFilters : t => array T.filter => unit = "filters" [@@bs.set];
     /*
      Set this to true if you want this display object to be cached as a bitmap.
      This basically takes a snap shot of the display object as it is at that moment. It can
@@ -3021,10 +3135,13 @@ module Impl = {
     external setCursor : t => string => unit = "cursor" [@@bs.set];
   };
   module CanvasTinter = {
-    type t;
+    type t = T.canvasTinter;
+    external create : unit => t = "CanvasTinter" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
   };
   module Buffer = {
-    type t;
+    type t = T.buffer;
+    external create : size::float => unit => t =
+      "Buffer" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      View on the vertices as a Float32Array for positions
      */
@@ -3061,7 +3178,14 @@ module Impl = {
 
      <pre class="prettyprint source lang-js"><code>let text = new PIXI.Text('This is a pixi text',{fontFamily : 'Arial', fontSize: 24, fill : 0xff1010, align : 'center'});</code></pre>
      */
-    type t;
+    type t = T.text;
+    external create :
+      text::string =>
+      style::unit /* unknown js type: object|PIXI.TextStyle */ =>
+      canvas::Dom.element =>
+      unit =>
+      t =
+      "Text" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The canvas element that everything is drawn to
      */
@@ -3155,14 +3279,14 @@ module Impl = {
      Setting the anchor to 0.5,0.5 means the texture's origin is centered
      Setting the anchor to 1,1 would mean the texture's origin point will be the bottom right corner
      */
-    external anchor : t => ObservablePoint.t = "" [@@bs.get];
+    external anchor : t => T.observablePoint = "" [@@bs.get];
     /*
      The anchor sets the origin point of the texture.
      The default is 0,0 this means the texture's origin is the top left
      Setting the anchor to 0.5,0.5 means the texture's origin is centered
      Setting the anchor to 1,1 would mean the texture's origin point will be the bottom right corner
      */
-    external setAnchor : t => ObservablePoint.t => unit = "anchor" [@@bs.set];
+    external setAnchor : t => T.observablePoint => unit = "anchor" [@@bs.set];
     /*
      The tint applied to the sprite. This is a hex value.
      A value of 0xFFFFFF will remove any tint effect.
@@ -3176,15 +3300,15 @@ module Impl = {
     /*
      The texture that the sprite is using
      */
-    external texture : t => Texture.t = "" [@@bs.get];
+    external texture : t => T.texture = "" [@@bs.get];
     /*
      The texture that the sprite is using
      */
-    external setTexture : t => Texture.t => unit = "texture" [@@bs.set];
+    external setTexture : t => T.texture => unit = "texture" [@@bs.set];
     /*
      The array of children of this container.
      */
-    external children : t => array DisplayObject.t = "" [@@bs.get];
+    external children : t => array T.displayObject = "" [@@bs.get];
     /*
      <p>Determines if the children to the displayObject can be clicked/touched
      Setting this to false allows pixi to bypass a recursive <code>hitTest</code> function</p>
@@ -3199,12 +3323,12 @@ module Impl = {
      World transform and local transform of this object.
      This will become read-only later, please do not assign anything there unless you know what are you doing
      */
-    external transform : t => TransformBase.t = "" [@@bs.get];
+    external transform : t => T.transformBase = "" [@@bs.get];
     /*
      World transform and local transform of this object.
      This will become read-only later, please do not assign anything there unless you know what are you doing
      */
-    external setTransform : t => TransformBase.t => unit = "transform" [@@bs.set];
+    external setTransform : t => T.transformBase => unit = "transform" [@@bs.set];
     /*
      The opacity of the object.
      */
@@ -3244,7 +3368,7 @@ module Impl = {
     /*
      The display object container that contains this display object.
      */
-    external parent : t => Container.t = "" [@@bs.get];
+    external parent : t => T.container = "" [@@bs.get];
     /*
      The multiplied alpha of the displayObject
      */
@@ -3255,14 +3379,14 @@ module Impl = {
 
      Also works as an interaction mask
      */
-    external filterArea : t => Rectangle.t = "" [@@bs.get];
+    external filterArea : t => T.rectangle = "" [@@bs.get];
     /*
      The area the filter is applied to. This is used as more of an optimisation
      rather than figuring out the dimensions of the displayObject each frame you can set this rectangle
 
      Also works as an interaction mask
      */
-    external setFilterArea : t => Rectangle.t => unit = "filterArea" [@@bs.set];
+    external setFilterArea : t => T.rectangle => unit = "filterArea" [@@bs.set];
     /*
      The position of the displayObject on the x axis relative to the local coordinates of the parent.
      An alias to position.x
@@ -3286,11 +3410,11 @@ module Impl = {
     /*
      Current transform of the object based on world (parent) factors
      */
-    external worldTransform : t => Matrix.t = "" [@@bs.get];
+    external worldTransform : t => T.matrix = "" [@@bs.get];
     /*
      Current transform of the object based on local factors: position, scale, other stuff
      */
-    external localTransform : t => Matrix.t = "" [@@bs.get];
+    external localTransform : t => T.matrix = "" [@@bs.get];
     /*
      The coordinate of the object relative to the local coordinates of the parent.
      Assignment by value since pixi-v4.
@@ -3331,12 +3455,12 @@ module Impl = {
      The skew factor for the object in radians.
      Assignment by value since pixi-v4.
      */
-    external skew : t => ObservablePoint.t = "" [@@bs.get];
+    external skew : t => T.observablePoint = "" [@@bs.get];
     /*
      The skew factor for the object in radians.
      Assignment by value since pixi-v4.
      */
-    external setSkew : t => ObservablePoint.t => unit = "skew" [@@bs.set];
+    external setSkew : t => T.observablePoint => unit = "skew" [@@bs.set];
     /*
      The rotation of the object in radians.
      */
@@ -3372,7 +3496,7 @@ module Impl = {
      To remove filters simply set this property to 'null'</li>
      </ul>
      */
-    external filters : t => array Filter.t = "" [@@bs.get];
+    external filters : t => array T.filter = "" [@@bs.get];
     /*
      Sets the filters for the displayObject.
 
@@ -3381,7 +3505,7 @@ module Impl = {
      To remove filters simply set this property to 'null'</li>
      </ul>
      */
-    external setFilters : t => array Filter.t => unit = "filters" [@@bs.set];
+    external setFilters : t => array T.filter => unit = "filters" [@@bs.set];
     /*
      Set this to true if you want this display object to be cached as a bitmap.
      This basically takes a snap shot of the display object as it is at that moment. It can
@@ -3456,9 +3580,24 @@ module Impl = {
     /*
      The TextMetrics object represents the measurement of a block of text with a specified style.
      */
-    type t;
+    type t = T.textMetrics;
+    external create :
+      text::string =>
+      style::T.textStyle =>
+      width::float =>
+      height::float =>
+      lines::unit /* unknown js type: array */ =>
+      lineWidths::unit /* unknown js type: array */ =>
+      lineHeight::float =>
+      maxLineWidth::float =>
+      fontProperties::unit /* unknown js type: Object */ =>
+      unit =>
+      t =
+      "TextMetrics" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     module FontMetrics = {
-      type t;
+      type t = T.fontMetrics;
+      external create : unit => t =
+        "FontMetrics" [@@bs.new] [@@bs.scope "TextMetrics"] [@@bs.module ("pixi.js", "PIXI")];
     };
   };
   /*
@@ -3470,7 +3609,9 @@ module Impl = {
      A TextStyle Object decorates a Text Object. It can be shared between
      multiple Text objects. Changing the style will update all text objects using it.
      */
-    type t;
+    type t = T.textStyle;
+    external create : style::unit /* unknown js type: object */ => unit => t =
+      "TextStyle" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
   };
   /*
    A BaseRenderTexture is a special texture that allows any Pixi display object to be rendered to it.
@@ -3529,7 +3670,10 @@ module Impl = {
 
      renderer.render(sprite, renderTexture);  // Renders to center of RenderTexture</code></pre>
      */
-    type t;
+    type t = T.baseRenderTexture;
+    external create :
+      width::float => height::float => scaleMode::float => resolution::float => unit => t =
+      "BaseRenderTexture" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      This will let the renderer know if the texture is valid. If it's not then it cannot be rendered.
      */
@@ -3664,7 +3808,14 @@ module Impl = {
     /*
      A texture stores the information that represents an image. All textures have a base texture.
      */
-    type t;
+    type t = T.baseTexture;
+    external create :
+      source::unit /* unknown js type: HTMLImageElement|HTMLCanvasElement */ =>
+      scaleMode::float =>
+      resolution::float =>
+      unit =>
+      t =
+      "BaseTexture" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The resolution / device pixel ratio of the texture
      */
@@ -3837,7 +3988,9 @@ module Impl = {
 
      renderer.render(sprite, renderTexture);  // Renders to center of RenderTexture</code></pre>
      */
-    type t;
+    type t = T.renderTexture;
+    external create : baseRenderTexture::T.baseRenderTexture => frame::T.rectangle => unit => t =
+      "RenderTexture" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      This will let the renderer know if the texture is valid. If it's not then it cannot be rendered.
      */
@@ -3857,29 +4010,29 @@ module Impl = {
     /*
      The base texture that this texture uses.
      */
-    external baseTexture : t => BaseTexture.t = "" [@@bs.get];
+    external baseTexture : t => T.baseTexture = "" [@@bs.get];
     /*
      The base texture that this texture uses.
      */
-    external setBaseTexture : t => BaseTexture.t => unit = "baseTexture" [@@bs.set];
+    external setBaseTexture : t => T.baseTexture => unit = "baseTexture" [@@bs.set];
     /*
      This is the area of the BaseTexture image to actually copy to the Canvas / WebGL when rendering,
      irrespective of the actual frame size or placement (which can be influenced by trimmed texture atlases)
      */
-    external _frame : t => Rectangle.t = "" [@@bs.get];
+    external _frame : t => T.rectangle = "" [@@bs.get];
     /*
      This is the area of the BaseTexture image to actually copy to the Canvas / WebGL when rendering,
      irrespective of the actual frame size or placement (which can be influenced by trimmed texture atlases)
      */
-    external set_frame : t => Rectangle.t => unit = "_frame" [@@bs.set];
+    external set_frame : t => T.rectangle => unit = "_frame" [@@bs.set];
     /*
      This is the trimmed area of original texture, before it was put in atlas
      */
-    external trim : t => Rectangle.t = "" [@@bs.get];
+    external trim : t => T.rectangle = "" [@@bs.get];
     /*
      This is the trimmed area of original texture, before it was put in atlas
      */
-    external setTrim : t => Rectangle.t => unit = "trim" [@@bs.set];
+    external setTrim : t => T.rectangle => unit = "trim" [@@bs.set];
     /*
      This will let a renderer know that a texture has been updated (used mainly for webGL uv updates)
      */
@@ -3891,11 +4044,11 @@ module Impl = {
     /*
      This is the area of original texture, before it was put in atlas
      */
-    external orig : t => Rectangle.t = "" [@@bs.get];
+    external orig : t => T.rectangle = "" [@@bs.get];
     /*
      This is the area of original texture, before it was put in atlas
      */
-    external setOrig : t => Rectangle.t => unit = "orig" [@@bs.set];
+    external setOrig : t => T.rectangle => unit = "orig" [@@bs.set];
     /*
      The ids under which this Texture has been added to the texture cache. This is
      automatically set as long as Texture.addToCache is used, but may not be set if a
@@ -3911,11 +4064,11 @@ module Impl = {
     /*
      The frame specifies the region of the base texture that this texture uses.
      */
-    external frame : t => Rectangle.t = "" [@@bs.get];
+    external frame : t => T.rectangle = "" [@@bs.get];
     /*
      The frame specifies the region of the base texture that this texture uses.
      */
-    external setFrame : t => Rectangle.t => unit = "frame" [@@bs.set];
+    external setFrame : t => T.rectangle => unit = "frame" [@@bs.set];
     /*
      Indicates whether the texture is rotated inside the atlas
      set to 2 to compensate for texture packer rotation
@@ -3958,15 +4111,22 @@ module Impl = {
      Utility class for maintaining reference to a collection
      of Textures on a single Spritesheet.
      */
-    type t;
+    type t = T.spritesheet;
+    external create :
+      baseTexture::T.baseTexture =>
+      data::unit /* unknown js type: Object */ =>
+      resolutionFilename::string =>
+      unit =>
+      t =
+      "Spritesheet" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      Reference to ths source texture
      */
-    external baseTexture : t => BaseTexture.t = "" [@@bs.get];
+    external baseTexture : t => T.baseTexture = "" [@@bs.get];
     /*
      Reference to ths source texture
      */
-    external setBaseTexture : t => BaseTexture.t => unit = "baseTexture" [@@bs.set];
+    external setBaseTexture : t => T.baseTexture => unit = "baseTexture" [@@bs.set];
     /*
      Map of spritesheet textures.
      */
@@ -4025,7 +4185,16 @@ module Impl = {
      var sprite1 = new PIXI.Sprite(texture);
      //sprite1._textureID should not be undefined if the texture has finished processing the SVG file</code></pre>You can use a ticker or rAF to ensure your sprites load the finished textures after processing. See issue #3068.
      */
-    type t;
+    type t = T.texture;
+    external create :
+      baseTexture::T.baseTexture =>
+      frame::T.rectangle =>
+      orig::T.rectangle =>
+      trim::T.rectangle =>
+      rotate::float =>
+      unit =>
+      t =
+      "Texture" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      Does this Texture have any frame data assigned to it?
      */
@@ -4037,29 +4206,29 @@ module Impl = {
     /*
      The base texture that this texture uses.
      */
-    external baseTexture : t => BaseTexture.t = "" [@@bs.get];
+    external baseTexture : t => T.baseTexture = "" [@@bs.get];
     /*
      The base texture that this texture uses.
      */
-    external setBaseTexture : t => BaseTexture.t => unit = "baseTexture" [@@bs.set];
+    external setBaseTexture : t => T.baseTexture => unit = "baseTexture" [@@bs.set];
     /*
      This is the area of the BaseTexture image to actually copy to the Canvas / WebGL when rendering,
      irrespective of the actual frame size or placement (which can be influenced by trimmed texture atlases)
      */
-    external _frame : t => Rectangle.t = "" [@@bs.get];
+    external _frame : t => T.rectangle = "" [@@bs.get];
     /*
      This is the area of the BaseTexture image to actually copy to the Canvas / WebGL when rendering,
      irrespective of the actual frame size or placement (which can be influenced by trimmed texture atlases)
      */
-    external set_frame : t => Rectangle.t => unit = "_frame" [@@bs.set];
+    external set_frame : t => T.rectangle => unit = "_frame" [@@bs.set];
     /*
      This is the trimmed area of original texture, before it was put in atlas
      */
-    external trim : t => Rectangle.t = "" [@@bs.get];
+    external trim : t => T.rectangle = "" [@@bs.get];
     /*
      This is the trimmed area of original texture, before it was put in atlas
      */
-    external setTrim : t => Rectangle.t => unit = "trim" [@@bs.set];
+    external setTrim : t => T.rectangle => unit = "trim" [@@bs.set];
     /*
      This will let the renderer know if the texture is valid. If it's not then it cannot be rendered.
      */
@@ -4079,11 +4248,11 @@ module Impl = {
     /*
      This is the area of original texture, before it was put in atlas
      */
-    external orig : t => Rectangle.t = "" [@@bs.get];
+    external orig : t => T.rectangle = "" [@@bs.get];
     /*
      This is the area of original texture, before it was put in atlas
      */
-    external setOrig : t => Rectangle.t => unit = "orig" [@@bs.set];
+    external setOrig : t => T.rectangle => unit = "orig" [@@bs.set];
     /*
      Extra field for extra plugins. May contain clamp settings and some matrices
      */
@@ -4108,11 +4277,11 @@ module Impl = {
     /*
      The frame specifies the region of the base texture that this texture uses.
      */
-    external frame : t => Rectangle.t = "" [@@bs.get];
+    external frame : t => T.rectangle = "" [@@bs.get];
     /*
      The frame specifies the region of the base texture that this texture uses.
      */
-    external setFrame : t => Rectangle.t => unit = "frame" [@@bs.set];
+    external setFrame : t => T.rectangle => unit = "frame" [@@bs.set];
     /*
      Indicates whether the texture is rotated inside the atlas
      set to 2 to compensate for texture packer rotation
@@ -4183,7 +4352,10 @@ module Impl = {
          { src: '/video.mp4', mime: 'video/mp4' }
      ]);</code></pre><p>See the <a href="http://www.goodboydigital.com/pixijs/examples/deus/">&quot;deus&quot; demo</a>.</p>
      */
-    type t;
+    type t = T.videoBaseTexture;
+    external create :
+      source::unit /* unknown js type: HTMLVideoElement */ => scaleMode::float => unit => t =
+      "VideoBaseTexture" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      When set to true will automatically play videos used by this texture once
      they are loaded. If false, it will not modify the playing state.
@@ -4337,7 +4509,9 @@ module Impl = {
        Animation frames are requested only when necessary,
        e.g. When the ticker is started and the emitter has listeners.
        */
-      type t;
+      type t = T.ticker;
+      external create : unit => t =
+        "Ticker" [@@bs.new] [@@bs.scope "Ticker"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        Whether or not this ticker should invoke the method
        {@link PIXI.ticker.Ticker#start} automatically
@@ -4451,63 +4625,12 @@ module Impl = {
        */
       external setMinFPS : t => float => unit = "minFPS" [@@bs.set];
     };
-    module TickerListener = {
-      /*
-       The handler function to execute.
-       */
-      external fn : t => unit /* unknown js type: function */ = "" [@@bs.get];
-      /*
-       The handler function to execute.
-       */
-      external setFn : t => unit /* unknown js type: function */ => unit = "fn" [@@bs.set];
-      /*
-       The calling to execute.
-       */
-      external context : t => unit /* unknown js type: function */ = "" [@@bs.get];
-      /*
-       The calling to execute.
-       */
-      external setContext : t => unit /* unknown js type: function */ => unit =
-        "context" [@@bs.set];
-      /*
-       The current priority.
-       */
-      external priority : t => float = "" [@@bs.get];
-      /*
-       The current priority.
-       */
-      external setPriority : t => float => unit = "priority" [@@bs.set];
-      /*
-       If this should only execute once.
-       */
-      external once : t => Js.boolean = "" [@@bs.get];
-      /*
-       If this should only execute once.
-       */
-      external setOnce : t => Js.boolean => unit = "once" [@@bs.set];
-      /*
-       The next item in chain.
-       */
-      external next : t => unit /* unknown js type: TickerListener */ = "" [@@bs.get];
-      /*
-       The next item in chain.
-       */
-      external setNext : t => unit /* unknown js type: TickerListener */ => unit =
-        "next" [@@bs.set];
-      /*
-       The previous item in chain.
-       */
-      external previous : t => unit /* unknown js type: TickerListener */ = "" [@@bs.get];
-      /*
-       The previous item in chain.
-       */
-      external setPrevious : t => unit /* unknown js type: TickerListener */ => unit =
-        "previous" [@@bs.set];
-    };
   };
   module Utils = {
     module EventEmitter = {
-      type t;
+      type t = T.eventEmitter;
+      external create : unit => t =
+        "EventEmitter" [@@bs.new] [@@bs.scope "Utils"] [@@bs.module ("pixi.js", "PIXI")];
     };
   };
   module Extract = {
@@ -4522,7 +4645,9 @@ module Impl = {
 
        An instance of this class is automatically created by default, and can be found at renderer.plugins.extract
        */
-      type t;
+      type t = T.canvasExtract;
+      external create : renderer::T.canvasRenderer => unit => t =
+        "CanvasExtract" [@@bs.new] [@@bs.scope "Extract"] [@@bs.module ("pixi.js", "PIXI")];
     };
     /*
      The extract manager provides functionality to export content from the renderers.
@@ -4535,7 +4660,9 @@ module Impl = {
 
        An instance of this class is automatically created by default, and can be found at renderer.plugins.extract
        */
-      type t;
+      type t = T.webGLExtract;
+      external create : renderer::T.webGLRenderer => unit => t =
+        "WebGLExtract" [@@bs.new] [@@bs.scope "Extract"] [@@bs.module ("pixi.js", "PIXI")];
     };
   };
   module Extras = {
@@ -4568,7 +4695,13 @@ module Impl = {
 
        let mc = new PIXI.AnimatedSprite(textureArray);</code></pre>
        */
-      type t;
+      type t = T.animatedSprite;
+      external create :
+        textures::unit /* unknown js type: Array.<PIXI.Texture>|Array.<FrameObject> */ =>
+        autoUpdate::Js.boolean =>
+        unit =>
+        t =
+        "AnimatedSprite" [@@bs.new] [@@bs.scope "Extras"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The speed that the AnimatedSprite will play at. Higher is faster, lower is slower
        */
@@ -4623,11 +4756,11 @@ module Impl = {
       /*
        The array of textures used for this AnimatedSprite
        */
-      external textures : t => array Texture.t = "" [@@bs.get];
+      external textures : t => array T.texture = "" [@@bs.get];
       /*
        The array of textures used for this AnimatedSprite
        */
-      external setTextures : t => array Texture.t => unit = "textures" [@@bs.set];
+      external setTextures : t => array T.texture => unit = "textures" [@@bs.set];
       /*
        The AnimatedSprites current frame index
        */
@@ -4681,14 +4814,14 @@ module Impl = {
        Setting the anchor to 0.5,0.5 means the texture's origin is centered
        Setting the anchor to 1,1 would mean the texture's origin point will be the bottom right corner
        */
-      external anchor : t => ObservablePoint.t = "" [@@bs.get];
+      external anchor : t => T.observablePoint = "" [@@bs.get];
       /*
        The anchor sets the origin point of the texture.
        The default is 0,0 this means the texture's origin is the top left
        Setting the anchor to 0.5,0.5 means the texture's origin is centered
        Setting the anchor to 1,1 would mean the texture's origin point will be the bottom right corner
        */
-      external setAnchor : t => ObservablePoint.t => unit = "anchor" [@@bs.set];
+      external setAnchor : t => T.observablePoint => unit = "anchor" [@@bs.set];
       /*
        The tint applied to the sprite. This is a hex value.
        A value of 0xFFFFFF will remove any tint effect.
@@ -4702,15 +4835,15 @@ module Impl = {
       /*
        The texture that the sprite is using
        */
-      external texture : t => Texture.t = "" [@@bs.get];
+      external texture : t => T.texture = "" [@@bs.get];
       /*
        The texture that the sprite is using
        */
-      external setTexture : t => Texture.t => unit = "texture" [@@bs.set];
+      external setTexture : t => T.texture => unit = "texture" [@@bs.set];
       /*
        The array of children of this container.
        */
-      external children : t => array DisplayObject.t = "" [@@bs.get];
+      external children : t => array T.displayObject = "" [@@bs.get];
       /*
        <p>Determines if the children to the displayObject can be clicked/touched
        Setting this to false allows pixi to bypass a recursive <code>hitTest</code> function</p>
@@ -4725,12 +4858,12 @@ module Impl = {
        World transform and local transform of this object.
        This will become read-only later, please do not assign anything there unless you know what are you doing
        */
-      external transform : t => TransformBase.t = "" [@@bs.get];
+      external transform : t => T.transformBase = "" [@@bs.get];
       /*
        World transform and local transform of this object.
        This will become read-only later, please do not assign anything there unless you know what are you doing
        */
-      external setTransform : t => TransformBase.t => unit = "transform" [@@bs.set];
+      external setTransform : t => T.transformBase => unit = "transform" [@@bs.set];
       /*
        The opacity of the object.
        */
@@ -4770,7 +4903,7 @@ module Impl = {
       /*
        The display object container that contains this display object.
        */
-      external parent : t => Container.t = "" [@@bs.get];
+      external parent : t => T.container = "" [@@bs.get];
       /*
        The multiplied alpha of the displayObject
        */
@@ -4781,14 +4914,14 @@ module Impl = {
 
        Also works as an interaction mask
        */
-      external filterArea : t => Rectangle.t = "" [@@bs.get];
+      external filterArea : t => T.rectangle = "" [@@bs.get];
       /*
        The area the filter is applied to. This is used as more of an optimisation
        rather than figuring out the dimensions of the displayObject each frame you can set this rectangle
 
        Also works as an interaction mask
        */
-      external setFilterArea : t => Rectangle.t => unit = "filterArea" [@@bs.set];
+      external setFilterArea : t => T.rectangle => unit = "filterArea" [@@bs.set];
       /*
        The position of the displayObject on the x axis relative to the local coordinates of the parent.
        An alias to position.x
@@ -4812,11 +4945,11 @@ module Impl = {
       /*
        Current transform of the object based on world (parent) factors
        */
-      external worldTransform : t => Matrix.t = "" [@@bs.get];
+      external worldTransform : t => T.matrix = "" [@@bs.get];
       /*
        Current transform of the object based on local factors: position, scale, other stuff
        */
-      external localTransform : t => Matrix.t = "" [@@bs.get];
+      external localTransform : t => T.matrix = "" [@@bs.get];
       /*
        The coordinate of the object relative to the local coordinates of the parent.
        Assignment by value since pixi-v4.
@@ -4858,12 +4991,12 @@ module Impl = {
        The skew factor for the object in radians.
        Assignment by value since pixi-v4.
        */
-      external skew : t => ObservablePoint.t = "" [@@bs.get];
+      external skew : t => T.observablePoint = "" [@@bs.get];
       /*
        The skew factor for the object in radians.
        Assignment by value since pixi-v4.
        */
-      external setSkew : t => ObservablePoint.t => unit = "skew" [@@bs.set];
+      external setSkew : t => T.observablePoint => unit = "skew" [@@bs.set];
       /*
        The rotation of the object in radians.
        */
@@ -4899,7 +5032,7 @@ module Impl = {
        To remove filters simply set this property to 'null'</li>
        </ul>
        */
-      external filters : t => array Filter.t = "" [@@bs.get];
+      external filters : t => array T.filter = "" [@@bs.get];
       /*
        Sets the filters for the displayObject.
 
@@ -4908,7 +5041,7 @@ module Impl = {
        To remove filters simply set this property to 'null'</li>
        </ul>
        */
-      external setFilters : t => array Filter.t => unit = "filters" [@@bs.set];
+      external setFilters : t => array T.filter => unit = "filters" [@@bs.set];
       /*
        Set this to true if you want this display object to be cached as a bitmap.
        This basically takes a snap shot of the display object as it is at that moment. It can
@@ -4997,7 +5130,9 @@ module Impl = {
        let bitmapText = new PIXI.extras.BitmapText(&quot;text using a fancy font!&quot;, {font: &quot;35px Desyrel&quot;, align: &quot;right&quot;});</code></pre>http://www.angelcode.com/products/bmfont/ for windows or
        http://www.bmglyph.com/ for mac.
        */
-      type t;
+      type t = T.bitmapText;
+      external create : text::string => style::unit /* unknown js type: object */ => unit => t =
+        "BitmapText" [@@bs.new] [@@bs.scope "Extras"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The dirty state of this object.
        */
@@ -5084,7 +5219,7 @@ module Impl = {
       /*
        The array of children of this container.
        */
-      external children : t => array DisplayObject.t = "" [@@bs.get];
+      external children : t => array T.displayObject = "" [@@bs.get];
       /*
        The width of the Container, setting this will actually modify the scale to achieve the value set
        */
@@ -5115,12 +5250,12 @@ module Impl = {
        World transform and local transform of this object.
        This will become read-only later, please do not assign anything there unless you know what are you doing
        */
-      external transform : t => TransformBase.t = "" [@@bs.get];
+      external transform : t => T.transformBase = "" [@@bs.get];
       /*
        World transform and local transform of this object.
        This will become read-only later, please do not assign anything there unless you know what are you doing
        */
-      external setTransform : t => TransformBase.t => unit = "transform" [@@bs.set];
+      external setTransform : t => T.transformBase => unit = "transform" [@@bs.set];
       /*
        The opacity of the object.
        */
@@ -5160,7 +5295,7 @@ module Impl = {
       /*
        The display object container that contains this display object.
        */
-      external parent : t => Container.t = "" [@@bs.get];
+      external parent : t => T.container = "" [@@bs.get];
       /*
        The multiplied alpha of the displayObject
        */
@@ -5171,14 +5306,14 @@ module Impl = {
 
        Also works as an interaction mask
        */
-      external filterArea : t => Rectangle.t = "" [@@bs.get];
+      external filterArea : t => T.rectangle = "" [@@bs.get];
       /*
        The area the filter is applied to. This is used as more of an optimisation
        rather than figuring out the dimensions of the displayObject each frame you can set this rectangle
 
        Also works as an interaction mask
        */
-      external setFilterArea : t => Rectangle.t => unit = "filterArea" [@@bs.set];
+      external setFilterArea : t => T.rectangle => unit = "filterArea" [@@bs.set];
       /*
        The position of the displayObject on the x axis relative to the local coordinates of the parent.
        An alias to position.x
@@ -5202,11 +5337,11 @@ module Impl = {
       /*
        Current transform of the object based on world (parent) factors
        */
-      external worldTransform : t => Matrix.t = "" [@@bs.get];
+      external worldTransform : t => T.matrix = "" [@@bs.get];
       /*
        Current transform of the object based on local factors: position, scale, other stuff
        */
-      external localTransform : t => Matrix.t = "" [@@bs.get];
+      external localTransform : t => T.matrix = "" [@@bs.get];
       /*
        The coordinate of the object relative to the local coordinates of the parent.
        Assignment by value since pixi-v4.
@@ -5248,12 +5383,12 @@ module Impl = {
        The skew factor for the object in radians.
        Assignment by value since pixi-v4.
        */
-      external skew : t => ObservablePoint.t = "" [@@bs.get];
+      external skew : t => T.observablePoint = "" [@@bs.get];
       /*
        The skew factor for the object in radians.
        Assignment by value since pixi-v4.
        */
-      external setSkew : t => ObservablePoint.t => unit = "skew" [@@bs.set];
+      external setSkew : t => T.observablePoint => unit = "skew" [@@bs.set];
       /*
        The rotation of the object in radians.
        */
@@ -5289,7 +5424,7 @@ module Impl = {
        To remove filters simply set this property to 'null'</li>
        </ul>
        */
-      external filters : t => array Filter.t = "" [@@bs.get];
+      external filters : t => array T.filter = "" [@@bs.get];
       /*
        Sets the filters for the displayObject.
 
@@ -5298,7 +5433,7 @@ module Impl = {
        To remove filters simply set this property to 'null'</li>
        </ul>
        */
-      external setFilters : t => array Filter.t => unit = "filters" [@@bs.set];
+      external setFilters : t => array T.filter => unit = "filters" [@@bs.set];
       /*
        Set this to true if you want this display object to be cached as a bitmap.
        This basically takes a snap shot of the display object as it is at that moment. It can
@@ -5373,7 +5508,9 @@ module Impl = {
       /*
        class controls uv transform and frame clamp for texture
        */
-      type t;
+      type t = T.textureTransform;
+      external create : texture::T.texture => clampMargin::float => unit => t =
+        "TextureTransform" [@@bs.new] [@@bs.scope "Extras"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        Changes frame clamping
        Works with TilingSprite and Mesh
@@ -5401,11 +5538,11 @@ module Impl = {
       /*
        texture property
        */
-      external texture : t => Texture.t = "" [@@bs.get];
+      external texture : t => T.texture = "" [@@bs.get];
       /*
        texture property
        */
-      external setTexture : t => Texture.t => unit = "texture" [@@bs.set];
+      external setTexture : t => T.texture => unit = "texture" [@@bs.set];
     };
     /*
      A tiling sprite is a fast way of rendering a tiling image
@@ -5414,23 +5551,25 @@ module Impl = {
       /*
        A tiling sprite is a fast way of rendering a tiling image
        */
-      type t;
+      type t = T.tilingSprite;
+      external create : texture::T.texture => width::float => height::float => unit => t =
+        "TilingSprite" [@@bs.new] [@@bs.scope "Extras"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        Tile transform
        */
-      external tileTransform : t => TransformStatic.t = "" [@@bs.get];
+      external tileTransform : t => T.transformStatic = "" [@@bs.get];
       /*
        Tile transform
        */
-      external setTileTransform : t => TransformStatic.t => unit = "tileTransform" [@@bs.set];
+      external setTileTransform : t => T.transformStatic => unit = "tileTransform" [@@bs.set];
       /*
        transform that is applied to UV to get the texture coords
        */
-      external uvTransform : t => Extras.TextureTransform.t = "" [@@bs.get];
+      external uvTransform : t => T.textureTransform = "" [@@bs.get];
       /*
        transform that is applied to UV to get the texture coords
        */
-      external setUvTransform : t => Extras.TextureTransform.t => unit = "uvTransform" [@@bs.set];
+      external setUvTransform : t => T.textureTransform => unit = "uvTransform" [@@bs.set];
       /*
        Plugin that is responsible for rendering this element.
        Allows to customize the rendering process without overriding '_renderWebGL' method.
@@ -5462,19 +5601,19 @@ module Impl = {
       /*
        The scaling of the image that is being tiled
        */
-      external tileScale : t => ObservablePoint.t = "" [@@bs.get];
+      external tileScale : t => T.observablePoint = "" [@@bs.get];
       /*
        The scaling of the image that is being tiled
        */
-      external setTileScale : t => ObservablePoint.t => unit = "tileScale" [@@bs.set];
+      external setTileScale : t => T.observablePoint => unit = "tileScale" [@@bs.set];
       /*
        The offset of the image that is being tiled
        */
-      external tilePosition : t => ObservablePoint.t = "" [@@bs.get];
+      external tilePosition : t => T.observablePoint = "" [@@bs.get];
       /*
        The offset of the image that is being tiled
        */
-      external setTilePosition : t => ObservablePoint.t => unit = "tilePosition" [@@bs.set];
+      external setTilePosition : t => T.observablePoint => unit = "tilePosition" [@@bs.set];
       /*
        The width of the sprite, setting this will actually modify the scale to achieve the value set
        */
@@ -5514,14 +5653,14 @@ module Impl = {
        Setting the anchor to 0.5,0.5 means the texture's origin is centered
        Setting the anchor to 1,1 would mean the texture's origin point will be the bottom right corner
        */
-      external anchor : t => ObservablePoint.t = "" [@@bs.get];
+      external anchor : t => T.observablePoint = "" [@@bs.get];
       /*
        The anchor sets the origin point of the texture.
        The default is 0,0 this means the texture's origin is the top left
        Setting the anchor to 0.5,0.5 means the texture's origin is centered
        Setting the anchor to 1,1 would mean the texture's origin point will be the bottom right corner
        */
-      external setAnchor : t => ObservablePoint.t => unit = "anchor" [@@bs.set];
+      external setAnchor : t => T.observablePoint => unit = "anchor" [@@bs.set];
       /*
        The tint applied to the sprite. This is a hex value.
        A value of 0xFFFFFF will remove any tint effect.
@@ -5535,15 +5674,15 @@ module Impl = {
       /*
        The texture that the sprite is using
        */
-      external texture : t => Texture.t = "" [@@bs.get];
+      external texture : t => T.texture = "" [@@bs.get];
       /*
        The texture that the sprite is using
        */
-      external setTexture : t => Texture.t => unit = "texture" [@@bs.set];
+      external setTexture : t => T.texture => unit = "texture" [@@bs.set];
       /*
        The array of children of this container.
        */
-      external children : t => array DisplayObject.t = "" [@@bs.get];
+      external children : t => array T.displayObject = "" [@@bs.get];
       /*
        <p>Determines if the children to the displayObject can be clicked/touched
        Setting this to false allows pixi to bypass a recursive <code>hitTest</code> function</p>
@@ -5558,12 +5697,12 @@ module Impl = {
        World transform and local transform of this object.
        This will become read-only later, please do not assign anything there unless you know what are you doing
        */
-      external transform : t => TransformBase.t = "" [@@bs.get];
+      external transform : t => T.transformBase = "" [@@bs.get];
       /*
        World transform and local transform of this object.
        This will become read-only later, please do not assign anything there unless you know what are you doing
        */
-      external setTransform : t => TransformBase.t => unit = "transform" [@@bs.set];
+      external setTransform : t => T.transformBase => unit = "transform" [@@bs.set];
       /*
        The opacity of the object.
        */
@@ -5603,7 +5742,7 @@ module Impl = {
       /*
        The display object container that contains this display object.
        */
-      external parent : t => Container.t = "" [@@bs.get];
+      external parent : t => T.container = "" [@@bs.get];
       /*
        The multiplied alpha of the displayObject
        */
@@ -5614,14 +5753,14 @@ module Impl = {
 
        Also works as an interaction mask
        */
-      external filterArea : t => Rectangle.t = "" [@@bs.get];
+      external filterArea : t => T.rectangle = "" [@@bs.get];
       /*
        The area the filter is applied to. This is used as more of an optimisation
        rather than figuring out the dimensions of the displayObject each frame you can set this rectangle
 
        Also works as an interaction mask
        */
-      external setFilterArea : t => Rectangle.t => unit = "filterArea" [@@bs.set];
+      external setFilterArea : t => T.rectangle => unit = "filterArea" [@@bs.set];
       /*
        The position of the displayObject on the x axis relative to the local coordinates of the parent.
        An alias to position.x
@@ -5645,11 +5784,11 @@ module Impl = {
       /*
        Current transform of the object based on world (parent) factors
        */
-      external worldTransform : t => Matrix.t = "" [@@bs.get];
+      external worldTransform : t => T.matrix = "" [@@bs.get];
       /*
        Current transform of the object based on local factors: position, scale, other stuff
        */
-      external localTransform : t => Matrix.t = "" [@@bs.get];
+      external localTransform : t => T.matrix = "" [@@bs.get];
       /*
        The coordinate of the object relative to the local coordinates of the parent.
        Assignment by value since pixi-v4.
@@ -5691,12 +5830,12 @@ module Impl = {
        The skew factor for the object in radians.
        Assignment by value since pixi-v4.
        */
-      external skew : t => ObservablePoint.t = "" [@@bs.get];
+      external skew : t => T.observablePoint = "" [@@bs.get];
       /*
        The skew factor for the object in radians.
        Assignment by value since pixi-v4.
        */
-      external setSkew : t => ObservablePoint.t => unit = "skew" [@@bs.set];
+      external setSkew : t => T.observablePoint => unit = "skew" [@@bs.set];
       /*
        The rotation of the object in radians.
        */
@@ -5732,7 +5871,7 @@ module Impl = {
        To remove filters simply set this property to 'null'</li>
        </ul>
        */
-      external filters : t => array Filter.t = "" [@@bs.get];
+      external filters : t => array T.filter = "" [@@bs.get];
       /*
        Sets the filters for the displayObject.
 
@@ -5741,7 +5880,7 @@ module Impl = {
        To remove filters simply set this property to 'null'</li>
        </ul>
        */
-      external setFilters : t => array Filter.t => unit = "filters" [@@bs.set];
+      external setFilters : t => array T.filter => unit = "filters" [@@bs.set];
       /*
        Set this to true if you want this display object to be cached as a bitmap.
        This basically takes a snap shot of the display object as it is at that moment. It can
@@ -5816,19 +5955,22 @@ module Impl = {
       /*
        WebGL renderer plugin for tiling sprites
        */
-      type t;
+      type t = T.tilingSpriteRenderer;
+      external create : renderer::T.webGLRenderer => unit => t =
+        "TilingSpriteRenderer" [@@bs.new] [@@bs.scope "Extras"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The renderer this manager works for.
        */
-      external renderer : t => WebGLRenderer.t = "" [@@bs.get];
+      external renderer : t => T.webGLRenderer = "" [@@bs.get];
       /*
        The renderer this manager works for.
        */
-      external setRenderer : t => WebGLRenderer.t => unit = "renderer" [@@bs.set];
+      external setRenderer : t => T.webGLRenderer => unit = "renderer" [@@bs.set];
     };
   };
   module CacheData = {
-    type t;
+    type t = T.cacheData;
+    external create : unit => t = "CacheData" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
   };
   module Filters = {
     /*
@@ -5840,7 +5982,10 @@ module Impl = {
        The BlurFilter applies a Gaussian blur to an object.
        The strength of the blur can be set for x- and y-axis separately.
        */
-      type t;
+      type t = T.blurFilter;
+      external create :
+        strength::float => quality::float => resolution::float => kernelSize::float => unit => t =
+        "BlurFilter" [@@bs.new] [@@bs.scope "Filters"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        Sets the strength of both the blurX and blurY properties simultaneously
        */
@@ -5946,7 +6091,10 @@ module Impl = {
       /*
        The BlurXFilter applies a horizontal Gaussian blur to an object.
        */
-      type t;
+      type t = T.blurXFilter;
+      external create :
+        strength::float => quality::float => resolution::float => kernelSize::float => unit => t =
+        "BlurXFilter" [@@bs.new] [@@bs.scope "Filters"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        Sets the strength of both the blur.
        */
@@ -6038,7 +6186,10 @@ module Impl = {
       /*
        The BlurYFilter applies a horizontal Gaussian blur to an object.
        */
-      type t;
+      type t = T.blurYFilter;
+      external create :
+        strength::float => quality::float => resolution::float => kernelSize::float => unit => t =
+        "BlurYFilter" [@@bs.new] [@@bs.scope "Filters"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        Sets the strength of both the blur.
        */
@@ -6142,7 +6293,9 @@ module Impl = {
         container.filters = [colorMatrix];
         colorMatrix.contrast(2);</code></pre>
        */
-      type t;
+      type t = T.colorMatrixFilter;
+      external create : unit => t =
+        "ColorMatrixFilter" [@@bs.new] [@@bs.scope "Filters"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The matrix of the color matrix filter
        */
@@ -6248,15 +6401,17 @@ module Impl = {
        property of the texture is used to offset the x and the g property of the texture
        is used to offset the y.
        */
-      type t;
+      type t = T.displacementFilter;
+      external create : sprite::T.sprite => scale::float => unit => t =
+        "DisplacementFilter" [@@bs.new] [@@bs.scope "Filters"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The texture used for the displacement map. Must be power of 2 sized texture.
        */
-      external map : t => Texture.t = "" [@@bs.get];
+      external map : t => T.texture = "" [@@bs.get];
       /*
        The texture used for the displacement map. Must be power of 2 sized texture.
        */
-      external setMap : t => Texture.t => unit = "map" [@@bs.set];
+      external setMap : t => T.texture => unit = "map" [@@bs.set];
       /*
        The vertex shader.
        */
@@ -6334,7 +6489,9 @@ module Impl = {
        modification that the texture2DLod stuff was removed since it's
        unsupported by WebGL.
        */
-      type t;
+      type t = T.fxaaFilter;
+      external create : unit => t =
+        "FXAAFilter" [@@bs.new] [@@bs.scope "Filters"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The vertex shader.
        */
@@ -6408,7 +6565,9 @@ module Impl = {
       /*
        A Noise effect filter.
        */
-      type t;
+      type t = T.noiseFilter;
+      external create : noise::float => seed::float => unit => t =
+        "NoiseFilter" [@@bs.new] [@@bs.scope "Filters"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The amount of noise to apply, this value should be in the range (0, 1].
        */
@@ -6498,7 +6657,9 @@ module Impl = {
       /*
        Does nothing. Very handy.
        */
-      type t;
+      type t = T.voidFilter;
+      external create : unit => t =
+        "VoidFilter" [@@bs.new] [@@bs.scope "Filters"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The vertex shader.
        */
@@ -6574,23 +6735,25 @@ module Impl = {
       /*
        Holds all information related to an Interaction event
        */
-      type t;
+      type t = T.interactionData;
+      external create : unit => t =
+        "InteractionData" [@@bs.new] [@@bs.scope "Interaction"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        This point stores the global coords of where the touch/mouse event happened
        */
-      external global : t => Point.t = "" [@@bs.get];
+      external global : t => T.point = "" [@@bs.get];
       /*
        This point stores the global coords of where the touch/mouse event happened
        */
-      external setGlobal : t => Point.t => unit = "global" [@@bs.set];
+      external setGlobal : t => T.point => unit = "global" [@@bs.set];
       /*
        The target DisplayObject that was interacted with
        */
-      external target : t => DisplayObject.t = "" [@@bs.get];
+      external target : t => T.displayObject = "" [@@bs.get];
       /*
        The target DisplayObject that was interacted with
        */
-      external setTarget : t => DisplayObject.t => unit = "target" [@@bs.set];
+      external setTarget : t => T.displayObject => unit = "target" [@@bs.set];
       /*
        When passed to an event handler, this will be the original DOM Event that was captured
        */
@@ -6725,7 +6888,9 @@ module Impl = {
       /*
        Event class that mimics native DOM events.
        */
-      type t;
+      type t = T.interactionEvent;
+      external create : unit => t =
+        "InteractionEvent" [@@bs.new] [@@bs.scope "Interaction"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        Whether this event will continue propagating in the tree
        */
@@ -6738,20 +6903,20 @@ module Impl = {
        The object which caused this event to be dispatched.
        For listener callback see {@link PIXI.interaction.InteractionEvent.currentTarget}.
        */
-      external target : t => DisplayObject.t = "" [@@bs.get];
+      external target : t => T.displayObject = "" [@@bs.get];
       /*
        The object which caused this event to be dispatched.
        For listener callback see {@link PIXI.interaction.InteractionEvent.currentTarget}.
        */
-      external setTarget : t => DisplayObject.t => unit = "target" [@@bs.set];
+      external setTarget : t => T.displayObject => unit = "target" [@@bs.set];
       /*
        The object whose event listener’s callback is currently being invoked.
        */
-      external currentTarget : t => DisplayObject.t = "" [@@bs.get];
+      external currentTarget : t => T.displayObject = "" [@@bs.get];
       /*
        The object whose event listener’s callback is currently being invoked.
        */
-      external setCurrentTarget : t => DisplayObject.t => unit = "currentTarget" [@@bs.set];
+      external setCurrentTarget : t => T.displayObject => unit = "currentTarget" [@@bs.set];
       /*
        Type of the event
        */
@@ -6763,11 +6928,11 @@ module Impl = {
       /*
        InteractionData related to this event
        */
-      external data : t => Interaction.InteractionData.t = "" [@@bs.get];
+      external data : t => T.interactionData = "" [@@bs.get];
       /*
        InteractionData related to this event
        */
-      external setData : t => Interaction.InteractionData.t => unit = "data" [@@bs.set];
+      external setData : t => T.interactionData => unit = "data" [@@bs.set];
     };
     /*
      The interaction manager deals with mouse, touch and pointer events. Any DisplayObject can be interactive
@@ -6784,15 +6949,22 @@ module Impl = {
 
        An instance of this class is automatically created by default, and can be found at renderer.plugins.interaction
        */
-      type t;
+      type t = T.interactionManager;
+      external create :
+        renderer::unit /* unknown js type: PIXI.CanvasRenderer|PIXI.WebGLRenderer */ =>
+        options::unit /* unknown js type: object */ =>
+        unit =>
+        t =
+        "InteractionManager"
+        [@@bs.new] [@@bs.scope "Interaction"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The renderer this interaction manager works for.
        */
-      external renderer : t => SystemRenderer.t = "" [@@bs.get];
+      external renderer : t => T.systemRenderer = "" [@@bs.get];
       /*
        The renderer this interaction manager works for.
        */
-      external setRenderer : t => SystemRenderer.t => unit = "renderer" [@@bs.set];
+      external setRenderer : t => T.systemRenderer => unit = "renderer" [@@bs.set];
       /*
        Should default browser actions automatically be prevented.
        Does not apply to pointer events for backwards compatibility
@@ -6818,11 +6990,11 @@ module Impl = {
       /*
        The mouse data
        */
-      external mouse : t => Interaction.InteractionData.t = "" [@@bs.get];
+      external mouse : t => T.interactionData = "" [@@bs.get];
       /*
        The mouse data
        */
-      external setMouse : t => Interaction.InteractionData.t => unit = "mouse" [@@bs.set];
+      external setMouse : t => T.interactionData => unit = "mouse" [@@bs.set];
       /*
        An event data object to handle all the event tracking/dispatching
        */
@@ -6899,56 +7071,12 @@ module Impl = {
        */
       external setResolution : t => float => unit = "resolution" [@@bs.set];
     };
-    module InteractionTrackingData = {
-      /*
-       Unique pointer id of the event
-       */
-      external pointerId : t => float = "" [@@bs.get];
-      /*
-       State of the tracking data, expressed as bit flags
-       */
-      external flags : t => float = "" [@@bs.get];
-      /*
-       State of the tracking data, expressed as bit flags
-       */
-      external setFlags : t => float => unit = "flags" [@@bs.set];
-      /*
-       Is the tracked event inactive (not over or down)?
-       */
-      external none : t => float = "" [@@bs.get];
-      /*
-       Is the tracked event inactive (not over or down)?
-       */
-      external setNone : t => float => unit = "none" [@@bs.set];
-      /*
-       Is the tracked event over the DisplayObject?
-       */
-      external over : t => Js.boolean = "" [@@bs.get];
-      /*
-       Is the tracked event over the DisplayObject?
-       */
-      external setOver : t => Js.boolean => unit = "over" [@@bs.set];
-      /*
-       Did the right mouse button come down in the DisplayObject?
-       */
-      external rightDown : t => Js.boolean = "" [@@bs.get];
-      /*
-       Did the right mouse button come down in the DisplayObject?
-       */
-      external setRightDown : t => Js.boolean => unit = "rightDown" [@@bs.set];
-      /*
-       Did the left mouse button come down in the DisplayObject?
-       */
-      external leftDown : t => Js.boolean = "" [@@bs.get];
-      /*
-       Did the left mouse button come down in the DisplayObject?
-       */
-      external setLeftDown : t => Js.boolean => unit = "leftDown" [@@bs.set];
-    };
   };
   module Loaders = {
     module Resource = {
-      type t;
+      type t = T.resource;
+      external create : unit => t =
+        "Resource" [@@bs.new] [@@bs.scope "Loaders"] [@@bs.module ("pixi.js", "PIXI")];
     };
     /*
      The new loader, extends Resource Loader by Chad Engler: https://github.com/englercj/resource-loader
@@ -7035,7 +7163,9 @@ module Impl = {
        loader.onLoad.add(() => {}); // called once per loaded file
        loader.onComplete.add(() => {}); // called once when the queued resources all load.</code></pre>
        */
-      type t;
+      type t = T.loader;
+      external create : baseUrl::string => concurrency::float => unit => t =
+        "Loader" [@@bs.new] [@@bs.scope "Loaders"] [@@bs.module ("pixi.js", "PIXI")];
     };
   };
   module Mesh = {
@@ -7046,7 +7176,16 @@ module Impl = {
       /*
        Base mesh class
        */
-      type t;
+      type t = T.mesh;
+      external create :
+        texture::T.texture =>
+        vertices::unit /* unknown js type: Float32Array */ =>
+        uvs::unit /* unknown js type: Float32Array */ =>
+        indices::unit /* unknown js type: Uint16Array */ =>
+        drawMode::float =>
+        unit =>
+        t =
+        "Mesh" [@@bs.new] [@@bs.scope "Mesh"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The Uvs of the Mesh
        */
@@ -7120,11 +7259,11 @@ module Impl = {
       /*
        The default shader that is used if a mesh doesn't have a more specific one.
        */
-      external shader : t => Shader.t = "" [@@bs.get];
+      external shader : t => T.shader = "" [@@bs.get];
       /*
        The default shader that is used if a mesh doesn't have a more specific one.
        */
-      external setShader : t => Shader.t => unit = "shader" [@@bs.set];
+      external setShader : t => T.shader => unit = "shader" [@@bs.set];
       /*
        The tint applied to the mesh. This is a [r,g,b] value. A value of [1,1,1] will remove any
        tint effect.
@@ -7160,11 +7299,11 @@ module Impl = {
       /*
        The texture that the mesh uses.
        */
-      external texture : t => Texture.t = "" [@@bs.get];
+      external texture : t => T.texture = "" [@@bs.get];
       /*
        The texture that the mesh uses.
        */
-      external setTexture : t => Texture.t => unit = "texture" [@@bs.set];
+      external setTexture : t => T.texture => unit = "texture" [@@bs.set];
       /*
        The tint applied to the mesh. This is a hex value. A value of 0xFFFFFF will remove any tint effect.
        */
@@ -7176,7 +7315,7 @@ module Impl = {
       /*
        The array of children of this container.
        */
-      external children : t => array DisplayObject.t = "" [@@bs.get];
+      external children : t => array T.displayObject = "" [@@bs.get];
       /*
        The width of the Container, setting this will actually modify the scale to achieve the value set
        */
@@ -7207,12 +7346,12 @@ module Impl = {
        World transform and local transform of this object.
        This will become read-only later, please do not assign anything there unless you know what are you doing
        */
-      external transform : t => TransformBase.t = "" [@@bs.get];
+      external transform : t => T.transformBase = "" [@@bs.get];
       /*
        World transform and local transform of this object.
        This will become read-only later, please do not assign anything there unless you know what are you doing
        */
-      external setTransform : t => TransformBase.t => unit = "transform" [@@bs.set];
+      external setTransform : t => T.transformBase => unit = "transform" [@@bs.set];
       /*
        The opacity of the object.
        */
@@ -7252,7 +7391,7 @@ module Impl = {
       /*
        The display object container that contains this display object.
        */
-      external parent : t => Container.t = "" [@@bs.get];
+      external parent : t => T.container = "" [@@bs.get];
       /*
        The multiplied alpha of the displayObject
        */
@@ -7263,14 +7402,14 @@ module Impl = {
 
        Also works as an interaction mask
        */
-      external filterArea : t => Rectangle.t = "" [@@bs.get];
+      external filterArea : t => T.rectangle = "" [@@bs.get];
       /*
        The area the filter is applied to. This is used as more of an optimisation
        rather than figuring out the dimensions of the displayObject each frame you can set this rectangle
 
        Also works as an interaction mask
        */
-      external setFilterArea : t => Rectangle.t => unit = "filterArea" [@@bs.set];
+      external setFilterArea : t => T.rectangle => unit = "filterArea" [@@bs.set];
       /*
        The position of the displayObject on the x axis relative to the local coordinates of the parent.
        An alias to position.x
@@ -7294,11 +7433,11 @@ module Impl = {
       /*
        Current transform of the object based on world (parent) factors
        */
-      external worldTransform : t => Matrix.t = "" [@@bs.get];
+      external worldTransform : t => T.matrix = "" [@@bs.get];
       /*
        Current transform of the object based on local factors: position, scale, other stuff
        */
-      external localTransform : t => Matrix.t = "" [@@bs.get];
+      external localTransform : t => T.matrix = "" [@@bs.get];
       /*
        The coordinate of the object relative to the local coordinates of the parent.
        Assignment by value since pixi-v4.
@@ -7340,12 +7479,12 @@ module Impl = {
        The skew factor for the object in radians.
        Assignment by value since pixi-v4.
        */
-      external skew : t => ObservablePoint.t = "" [@@bs.get];
+      external skew : t => T.observablePoint = "" [@@bs.get];
       /*
        The skew factor for the object in radians.
        Assignment by value since pixi-v4.
        */
-      external setSkew : t => ObservablePoint.t => unit = "skew" [@@bs.set];
+      external setSkew : t => T.observablePoint => unit = "skew" [@@bs.set];
       /*
        The rotation of the object in radians.
        */
@@ -7381,7 +7520,7 @@ module Impl = {
        To remove filters simply set this property to 'null'</li>
        </ul>
        */
-      external filters : t => array Filter.t = "" [@@bs.get];
+      external filters : t => array T.filter = "" [@@bs.get];
       /*
        Sets the filters for the displayObject.
 
@@ -7390,7 +7529,7 @@ module Impl = {
        To remove filters simply set this property to 'null'</li>
        </ul>
        */
-      external setFilters : t => array Filter.t => unit = "filters" [@@bs.set];
+      external setFilters : t => array T.filter => unit = "filters" [@@bs.set];
       /*
        Set this to true if you want this display object to be cached as a bitmap.
        This basically takes a snap shot of the display object as it is at that moment. It can
@@ -7503,7 +7642,16 @@ module Impl = {
            area 5 will be stretched both horizontally and vertically
        </pre>
        */
-      type t;
+      type t = T.nineSlicePlane;
+      external create :
+        texture::T.texture =>
+        leftWidth::unit /* unknown js type: int */ =>
+        topHeight::unit /* unknown js type: int */ =>
+        rightWidth::unit /* unknown js type: int */ =>
+        bottomHeight::unit /* unknown js type: int */ =>
+        unit =>
+        t =
+        "NineSlicePlane" [@@bs.new] [@@bs.scope "Mesh"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The width of the NineSlicePlane, setting this will actually modify the vertices and UV's of this plane
        */
@@ -7632,11 +7780,11 @@ module Impl = {
       /*
        The default shader that is used if a mesh doesn't have a more specific one.
        */
-      external shader : t => Shader.t = "" [@@bs.get];
+      external shader : t => T.shader = "" [@@bs.get];
       /*
        The default shader that is used if a mesh doesn't have a more specific one.
        */
-      external setShader : t => Shader.t => unit = "shader" [@@bs.set];
+      external setShader : t => T.shader => unit = "shader" [@@bs.set];
       /*
        The tint applied to the mesh. This is a [r,g,b] value. A value of [1,1,1] will remove any
        tint effect.
@@ -7672,11 +7820,11 @@ module Impl = {
       /*
        The texture that the mesh uses.
        */
-      external texture : t => Texture.t = "" [@@bs.get];
+      external texture : t => T.texture = "" [@@bs.get];
       /*
        The texture that the mesh uses.
        */
-      external setTexture : t => Texture.t => unit = "texture" [@@bs.set];
+      external setTexture : t => T.texture => unit = "texture" [@@bs.set];
       /*
        The tint applied to the mesh. This is a hex value. A value of 0xFFFFFF will remove any tint effect.
        */
@@ -7688,7 +7836,7 @@ module Impl = {
       /*
        The array of children of this container.
        */
-      external children : t => array DisplayObject.t = "" [@@bs.get];
+      external children : t => array T.displayObject = "" [@@bs.get];
       /*
        <p>Determines if the children to the displayObject can be clicked/touched
        Setting this to false allows pixi to bypass a recursive <code>hitTest</code> function</p>
@@ -7703,12 +7851,12 @@ module Impl = {
        World transform and local transform of this object.
        This will become read-only later, please do not assign anything there unless you know what are you doing
        */
-      external transform : t => TransformBase.t = "" [@@bs.get];
+      external transform : t => T.transformBase = "" [@@bs.get];
       /*
        World transform and local transform of this object.
        This will become read-only later, please do not assign anything there unless you know what are you doing
        */
-      external setTransform : t => TransformBase.t => unit = "transform" [@@bs.set];
+      external setTransform : t => T.transformBase => unit = "transform" [@@bs.set];
       /*
        The opacity of the object.
        */
@@ -7748,7 +7896,7 @@ module Impl = {
       /*
        The display object container that contains this display object.
        */
-      external parent : t => Container.t = "" [@@bs.get];
+      external parent : t => T.container = "" [@@bs.get];
       /*
        The multiplied alpha of the displayObject
        */
@@ -7759,14 +7907,14 @@ module Impl = {
 
        Also works as an interaction mask
        */
-      external filterArea : t => Rectangle.t = "" [@@bs.get];
+      external filterArea : t => T.rectangle = "" [@@bs.get];
       /*
        The area the filter is applied to. This is used as more of an optimisation
        rather than figuring out the dimensions of the displayObject each frame you can set this rectangle
 
        Also works as an interaction mask
        */
-      external setFilterArea : t => Rectangle.t => unit = "filterArea" [@@bs.set];
+      external setFilterArea : t => T.rectangle => unit = "filterArea" [@@bs.set];
       /*
        The position of the displayObject on the x axis relative to the local coordinates of the parent.
        An alias to position.x
@@ -7790,11 +7938,11 @@ module Impl = {
       /*
        Current transform of the object based on world (parent) factors
        */
-      external worldTransform : t => Matrix.t = "" [@@bs.get];
+      external worldTransform : t => T.matrix = "" [@@bs.get];
       /*
        Current transform of the object based on local factors: position, scale, other stuff
        */
-      external localTransform : t => Matrix.t = "" [@@bs.get];
+      external localTransform : t => T.matrix = "" [@@bs.get];
       /*
        The coordinate of the object relative to the local coordinates of the parent.
        Assignment by value since pixi-v4.
@@ -7836,12 +7984,12 @@ module Impl = {
        The skew factor for the object in radians.
        Assignment by value since pixi-v4.
        */
-      external skew : t => ObservablePoint.t = "" [@@bs.get];
+      external skew : t => T.observablePoint = "" [@@bs.get];
       /*
        The skew factor for the object in radians.
        Assignment by value since pixi-v4.
        */
-      external setSkew : t => ObservablePoint.t => unit = "skew" [@@bs.set];
+      external setSkew : t => T.observablePoint => unit = "skew" [@@bs.set];
       /*
        The rotation of the object in radians.
        */
@@ -7877,7 +8025,7 @@ module Impl = {
        To remove filters simply set this property to 'null'</li>
        </ul>
        */
-      external filters : t => array Filter.t = "" [@@bs.get];
+      external filters : t => array T.filter = "" [@@bs.get];
       /*
        Sets the filters for the displayObject.
 
@@ -7886,7 +8034,7 @@ module Impl = {
        To remove filters simply set this property to 'null'</li>
        </ul>
        */
-      external setFilters : t => array Filter.t => unit = "filters" [@@bs.set];
+      external setFilters : t => array T.filter => unit = "filters" [@@bs.set];
       /*
        Set this to true if you want this display object to be cached as a bitmap.
        This basically takes a snap shot of the display object as it is at that moment. It can
@@ -7971,7 +8119,9 @@ module Impl = {
        };
        let Plane = new PIXI.Plane(PIXI.Texture.fromImage(&quot;snake.png&quot;), points);</code></pre>
        */
-      type t;
+      type t = T.plane;
+      external create : texture::T.texture => verticesX::float => verticesY::float => unit => t =
+        "Plane" [@@bs.new] [@@bs.scope "Mesh"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The Uvs of the Mesh
        */
@@ -8036,11 +8186,11 @@ module Impl = {
       /*
        The default shader that is used if a mesh doesn't have a more specific one.
        */
-      external shader : t => Shader.t = "" [@@bs.get];
+      external shader : t => T.shader = "" [@@bs.get];
       /*
        The default shader that is used if a mesh doesn't have a more specific one.
        */
-      external setShader : t => Shader.t => unit = "shader" [@@bs.set];
+      external setShader : t => T.shader => unit = "shader" [@@bs.set];
       /*
        The tint applied to the mesh. This is a [r,g,b] value. A value of [1,1,1] will remove any
        tint effect.
@@ -8076,11 +8226,11 @@ module Impl = {
       /*
        The texture that the mesh uses.
        */
-      external texture : t => Texture.t = "" [@@bs.get];
+      external texture : t => T.texture = "" [@@bs.get];
       /*
        The texture that the mesh uses.
        */
-      external setTexture : t => Texture.t => unit = "texture" [@@bs.set];
+      external setTexture : t => T.texture => unit = "texture" [@@bs.set];
       /*
        The tint applied to the mesh. This is a hex value. A value of 0xFFFFFF will remove any tint effect.
        */
@@ -8092,7 +8242,7 @@ module Impl = {
       /*
        The array of children of this container.
        */
-      external children : t => array DisplayObject.t = "" [@@bs.get];
+      external children : t => array T.displayObject = "" [@@bs.get];
       /*
        The width of the Container, setting this will actually modify the scale to achieve the value set
        */
@@ -8123,12 +8273,12 @@ module Impl = {
        World transform and local transform of this object.
        This will become read-only later, please do not assign anything there unless you know what are you doing
        */
-      external transform : t => TransformBase.t = "" [@@bs.get];
+      external transform : t => T.transformBase = "" [@@bs.get];
       /*
        World transform and local transform of this object.
        This will become read-only later, please do not assign anything there unless you know what are you doing
        */
-      external setTransform : t => TransformBase.t => unit = "transform" [@@bs.set];
+      external setTransform : t => T.transformBase => unit = "transform" [@@bs.set];
       /*
        The opacity of the object.
        */
@@ -8168,7 +8318,7 @@ module Impl = {
       /*
        The display object container that contains this display object.
        */
-      external parent : t => Container.t = "" [@@bs.get];
+      external parent : t => T.container = "" [@@bs.get];
       /*
        The multiplied alpha of the displayObject
        */
@@ -8179,14 +8329,14 @@ module Impl = {
 
        Also works as an interaction mask
        */
-      external filterArea : t => Rectangle.t = "" [@@bs.get];
+      external filterArea : t => T.rectangle = "" [@@bs.get];
       /*
        The area the filter is applied to. This is used as more of an optimisation
        rather than figuring out the dimensions of the displayObject each frame you can set this rectangle
 
        Also works as an interaction mask
        */
-      external setFilterArea : t => Rectangle.t => unit = "filterArea" [@@bs.set];
+      external setFilterArea : t => T.rectangle => unit = "filterArea" [@@bs.set];
       /*
        The position of the displayObject on the x axis relative to the local coordinates of the parent.
        An alias to position.x
@@ -8210,11 +8360,11 @@ module Impl = {
       /*
        Current transform of the object based on world (parent) factors
        */
-      external worldTransform : t => Matrix.t = "" [@@bs.get];
+      external worldTransform : t => T.matrix = "" [@@bs.get];
       /*
        Current transform of the object based on local factors: position, scale, other stuff
        */
-      external localTransform : t => Matrix.t = "" [@@bs.get];
+      external localTransform : t => T.matrix = "" [@@bs.get];
       /*
        The coordinate of the object relative to the local coordinates of the parent.
        Assignment by value since pixi-v4.
@@ -8256,12 +8406,12 @@ module Impl = {
        The skew factor for the object in radians.
        Assignment by value since pixi-v4.
        */
-      external skew : t => ObservablePoint.t = "" [@@bs.get];
+      external skew : t => T.observablePoint = "" [@@bs.get];
       /*
        The skew factor for the object in radians.
        Assignment by value since pixi-v4.
        */
-      external setSkew : t => ObservablePoint.t => unit = "skew" [@@bs.set];
+      external setSkew : t => T.observablePoint => unit = "skew" [@@bs.set];
       /*
        The rotation of the object in radians.
        */
@@ -8297,7 +8447,7 @@ module Impl = {
        To remove filters simply set this property to 'null'</li>
        </ul>
        */
-      external filters : t => array Filter.t = "" [@@bs.get];
+      external filters : t => array T.filter = "" [@@bs.get];
       /*
        Sets the filters for the displayObject.
 
@@ -8306,7 +8456,7 @@ module Impl = {
        To remove filters simply set this property to 'null'</li>
        </ul>
        */
-      external setFilters : t => array Filter.t => unit = "filters" [@@bs.set];
+      external setFilters : t => array T.filter => unit = "filters" [@@bs.set];
       /*
        Set this to true if you want this display object to be cached as a bitmap.
        This basically takes a snap shot of the display object as it is at that moment. It can
@@ -8391,15 +8541,17 @@ module Impl = {
        };
        let rope = new PIXI.Rope(PIXI.Texture.fromImage(&quot;snake.png&quot;), points);</code></pre>
        */
-      type t;
+      type t = T.rope;
+      external create : texture::T.texture => points::array T.point => unit => t =
+        "Rope" [@@bs.new] [@@bs.scope "Mesh"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        An array of points that determine the rope
        */
-      external points : t => array Point.t = "" [@@bs.get];
+      external points : t => array T.point = "" [@@bs.get];
       /*
        An array of points that determine the rope
        */
-      external setPoints : t => array Point.t => unit = "points" [@@bs.set];
+      external setPoints : t => array T.point => unit = "points" [@@bs.set];
       /*
        An array of vertices used to construct this rope.
        */
@@ -8490,11 +8642,11 @@ module Impl = {
       /*
        The default shader that is used if a mesh doesn't have a more specific one.
        */
-      external shader : t => Shader.t = "" [@@bs.get];
+      external shader : t => T.shader = "" [@@bs.get];
       /*
        The default shader that is used if a mesh doesn't have a more specific one.
        */
-      external setShader : t => Shader.t => unit = "shader" [@@bs.set];
+      external setShader : t => T.shader => unit = "shader" [@@bs.set];
       /*
        The tint applied to the mesh. This is a [r,g,b] value. A value of [1,1,1] will remove any
        tint effect.
@@ -8530,11 +8682,11 @@ module Impl = {
       /*
        The texture that the mesh uses.
        */
-      external texture : t => Texture.t = "" [@@bs.get];
+      external texture : t => T.texture = "" [@@bs.get];
       /*
        The texture that the mesh uses.
        */
-      external setTexture : t => Texture.t => unit = "texture" [@@bs.set];
+      external setTexture : t => T.texture => unit = "texture" [@@bs.set];
       /*
        The tint applied to the mesh. This is a hex value. A value of 0xFFFFFF will remove any tint effect.
        */
@@ -8546,7 +8698,7 @@ module Impl = {
       /*
        The array of children of this container.
        */
-      external children : t => array DisplayObject.t = "" [@@bs.get];
+      external children : t => array T.displayObject = "" [@@bs.get];
       /*
        The width of the Container, setting this will actually modify the scale to achieve the value set
        */
@@ -8577,12 +8729,12 @@ module Impl = {
        World transform and local transform of this object.
        This will become read-only later, please do not assign anything there unless you know what are you doing
        */
-      external transform : t => TransformBase.t = "" [@@bs.get];
+      external transform : t => T.transformBase = "" [@@bs.get];
       /*
        World transform and local transform of this object.
        This will become read-only later, please do not assign anything there unless you know what are you doing
        */
-      external setTransform : t => TransformBase.t => unit = "transform" [@@bs.set];
+      external setTransform : t => T.transformBase => unit = "transform" [@@bs.set];
       /*
        The opacity of the object.
        */
@@ -8622,7 +8774,7 @@ module Impl = {
       /*
        The display object container that contains this display object.
        */
-      external parent : t => Container.t = "" [@@bs.get];
+      external parent : t => T.container = "" [@@bs.get];
       /*
        The multiplied alpha of the displayObject
        */
@@ -8633,14 +8785,14 @@ module Impl = {
 
        Also works as an interaction mask
        */
-      external filterArea : t => Rectangle.t = "" [@@bs.get];
+      external filterArea : t => T.rectangle = "" [@@bs.get];
       /*
        The area the filter is applied to. This is used as more of an optimisation
        rather than figuring out the dimensions of the displayObject each frame you can set this rectangle
 
        Also works as an interaction mask
        */
-      external setFilterArea : t => Rectangle.t => unit = "filterArea" [@@bs.set];
+      external setFilterArea : t => T.rectangle => unit = "filterArea" [@@bs.set];
       /*
        The position of the displayObject on the x axis relative to the local coordinates of the parent.
        An alias to position.x
@@ -8664,11 +8816,11 @@ module Impl = {
       /*
        Current transform of the object based on world (parent) factors
        */
-      external worldTransform : t => Matrix.t = "" [@@bs.get];
+      external worldTransform : t => T.matrix = "" [@@bs.get];
       /*
        Current transform of the object based on local factors: position, scale, other stuff
        */
-      external localTransform : t => Matrix.t = "" [@@bs.get];
+      external localTransform : t => T.matrix = "" [@@bs.get];
       /*
        The coordinate of the object relative to the local coordinates of the parent.
        Assignment by value since pixi-v4.
@@ -8710,12 +8862,12 @@ module Impl = {
        The skew factor for the object in radians.
        Assignment by value since pixi-v4.
        */
-      external skew : t => ObservablePoint.t = "" [@@bs.get];
+      external skew : t => T.observablePoint = "" [@@bs.get];
       /*
        The skew factor for the object in radians.
        Assignment by value since pixi-v4.
        */
-      external setSkew : t => ObservablePoint.t => unit = "skew" [@@bs.set];
+      external setSkew : t => T.observablePoint => unit = "skew" [@@bs.set];
       /*
        The rotation of the object in radians.
        */
@@ -8751,7 +8903,7 @@ module Impl = {
        To remove filters simply set this property to 'null'</li>
        </ul>
        */
-      external filters : t => array Filter.t = "" [@@bs.get];
+      external filters : t => array T.filter = "" [@@bs.get];
       /*
        Sets the filters for the displayObject.
 
@@ -8760,7 +8912,7 @@ module Impl = {
        To remove filters simply set this property to 'null'</li>
        </ul>
        */
-      external setFilters : t => array Filter.t => unit = "filters" [@@bs.set];
+      external setFilters : t => array T.filter => unit = "filters" [@@bs.set];
       /*
        Set this to true if you want this display object to be cached as a bitmap.
        This basically takes a snap shot of the display object as it is at that moment. It can
@@ -8836,15 +8988,17 @@ module Impl = {
     /*
      WebGL renderer plugin for tiling sprites
      */
-    type t;
+    type t = T.meshRenderer;
+    external create : renderer::T.webGLRenderer => unit => t =
+      "MeshRenderer" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The renderer this manager works for.
      */
-    external renderer : t => WebGLRenderer.t = "" [@@bs.get];
+    external renderer : t => T.webGLRenderer = "" [@@bs.get];
     /*
      The renderer this manager works for.
      */
-    external setRenderer : t => WebGLRenderer.t => unit = "renderer" [@@bs.set];
+    external setRenderer : t => T.webGLRenderer => unit = "renderer" [@@bs.set];
   };
   module Particles = {
     /*
@@ -8880,7 +9034,14 @@ module Impl = {
            container.addChild(sprite);
        }</code></pre>And here you have a hundred sprites that will be renderer at the speed of light.
        */
-      type t;
+      type t = T.particleContainer;
+      external create :
+        maxSize::float =>
+        properties::unit /* unknown js type: object */ =>
+        batchSize::float =>
+        unit =>
+        t =
+        "ParticleContainer" [@@bs.new] [@@bs.scope "Particles"] [@@bs.module ("pixi.js", "PIXI")];
       external interactiveChildren : t => Js.boolean = "" [@@bs.get];
       external setInteractiveChildren : t => Js.boolean => unit = "interactiveChildren" [@@bs.set];
       /*
@@ -8906,7 +9067,7 @@ module Impl = {
       /*
        The texture used to render the children.
        */
-      external baseTexture : t => BaseTexture.t = "" [@@bs.get];
+      external baseTexture : t => T.baseTexture = "" [@@bs.get];
       /*
        The tint applied to the container. This is a hex value.
        A value of 0xFFFFFF will remove any tint effect.
@@ -8928,7 +9089,7 @@ module Impl = {
       /*
        The array of children of this container.
        */
-      external children : t => array DisplayObject.t = "" [@@bs.get];
+      external children : t => array T.displayObject = "" [@@bs.get];
       /*
        The width of the Container, setting this will actually modify the scale to achieve the value set
        */
@@ -8949,12 +9110,12 @@ module Impl = {
        World transform and local transform of this object.
        This will become read-only later, please do not assign anything there unless you know what are you doing
        */
-      external transform : t => TransformBase.t = "" [@@bs.get];
+      external transform : t => T.transformBase = "" [@@bs.get];
       /*
        World transform and local transform of this object.
        This will become read-only later, please do not assign anything there unless you know what are you doing
        */
-      external setTransform : t => TransformBase.t => unit = "transform" [@@bs.set];
+      external setTransform : t => T.transformBase => unit = "transform" [@@bs.set];
       /*
        The opacity of the object.
        */
@@ -8994,7 +9155,7 @@ module Impl = {
       /*
        The display object container that contains this display object.
        */
-      external parent : t => Container.t = "" [@@bs.get];
+      external parent : t => T.container = "" [@@bs.get];
       /*
        The multiplied alpha of the displayObject
        */
@@ -9005,14 +9166,14 @@ module Impl = {
 
        Also works as an interaction mask
        */
-      external filterArea : t => Rectangle.t = "" [@@bs.get];
+      external filterArea : t => T.rectangle = "" [@@bs.get];
       /*
        The area the filter is applied to. This is used as more of an optimisation
        rather than figuring out the dimensions of the displayObject each frame you can set this rectangle
 
        Also works as an interaction mask
        */
-      external setFilterArea : t => Rectangle.t => unit = "filterArea" [@@bs.set];
+      external setFilterArea : t => T.rectangle => unit = "filterArea" [@@bs.set];
       /*
        The position of the displayObject on the x axis relative to the local coordinates of the parent.
        An alias to position.x
@@ -9036,11 +9197,11 @@ module Impl = {
       /*
        Current transform of the object based on world (parent) factors
        */
-      external worldTransform : t => Matrix.t = "" [@@bs.get];
+      external worldTransform : t => T.matrix = "" [@@bs.get];
       /*
        Current transform of the object based on local factors: position, scale, other stuff
        */
-      external localTransform : t => Matrix.t = "" [@@bs.get];
+      external localTransform : t => T.matrix = "" [@@bs.get];
       /*
        The coordinate of the object relative to the local coordinates of the parent.
        Assignment by value since pixi-v4.
@@ -9082,12 +9243,12 @@ module Impl = {
        The skew factor for the object in radians.
        Assignment by value since pixi-v4.
        */
-      external skew : t => ObservablePoint.t = "" [@@bs.get];
+      external skew : t => T.observablePoint = "" [@@bs.get];
       /*
        The skew factor for the object in radians.
        Assignment by value since pixi-v4.
        */
-      external setSkew : t => ObservablePoint.t => unit = "skew" [@@bs.set];
+      external setSkew : t => T.observablePoint => unit = "skew" [@@bs.set];
       /*
        The rotation of the object in radians.
        */
@@ -9123,7 +9284,7 @@ module Impl = {
        To remove filters simply set this property to 'null'</li>
        </ul>
        */
-      external filters : t => array Filter.t = "" [@@bs.get];
+      external filters : t => array T.filter = "" [@@bs.get];
       /*
        Sets the filters for the displayObject.
 
@@ -9132,7 +9293,7 @@ module Impl = {
        To remove filters simply set this property to 'null'</li>
        </ul>
        */
-      external setFilters : t => array Filter.t => unit = "filters" [@@bs.set];
+      external setFilters : t => array T.filter => unit = "filters" [@@bs.set];
       /*
        Set this to true if you want this display object to be cached as a bitmap.
        This basically takes a snap shot of the display object as it is at that moment. It can
@@ -9202,7 +9363,9 @@ module Impl = {
     };
   };
   module ParticleShader = {
-    type t;
+    type t = T.particleShader;
+    external create : gl::T.shader => unit => t =
+      "ParticleShader" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
   };
   module Prepare = {
     /*
@@ -9216,7 +9379,9 @@ module Impl = {
        basic queuing functionality and is extended by {@link PIXI.prepare.WebGLPrepare} and {@link PIXI.prepare.CanvasPrepare}
        to provide preparation capabilities specific to their respective renderers.
        */
-      type t;
+      type t = T.basePrepare;
+      external create : renderer::T.systemRenderer => unit => t =
+        "BasePrepare" [@@bs.new] [@@bs.scope "Prepare"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The limiter to be used to control how quickly items are prepared.
        */
@@ -9232,11 +9397,11 @@ module Impl = {
       /*
        Reference to the renderer.
        */
-      external renderer : t => SystemRenderer.t = "" [@@bs.get];
+      external renderer : t => T.systemRenderer = "" [@@bs.get];
       /*
        Reference to the renderer.
        */
-      external setRenderer : t => SystemRenderer.t => unit = "renderer" [@@bs.set];
+      external setRenderer : t => T.systemRenderer => unit = "renderer" [@@bs.set];
       /*
        The only real difference between CanvasPrepare and WebGLPrepare is what they pass
        to upload hooks. That different parameter is stored here.
@@ -9269,7 +9434,22 @@ module Impl = {
 
        An instance of this class is automatically created by default, and can be found at renderer.plugins.prepare
        */
-      type t;
+      type t = T.canvasPrepare;
+      external create : renderer::T.canvasRenderer => unit => t =
+        "CanvasPrepare" [@@bs.new] [@@bs.scope "Prepare"] [@@bs.module ("pixi.js", "PIXI")];
+    };
+    /*
+     CountLimiter limits the number of items handled by a {@link PIXI.prepare.BasePrepare} to a specified
+     number of items per frame.
+     */
+    module CountLimiter = {
+      /*
+       CountLimiter limits the number of items handled by a {@link PIXI.prepare.BasePrepare} to a specified
+       number of items per frame.
+       */
+      type t = T.countLimiter;
+      external create : maxItemsPerFrame::float => unit => t =
+        "CountLimiter" [@@bs.new] [@@bs.scope "Prepare"] [@@bs.module ("pixi.js", "PIXI")];
     };
     /*
      The prepare manager provides functionality to upload content to the GPU.
@@ -9282,19 +9462,10 @@ module Impl = {
 
        An instance of this class is automatically created by default, and can be found at renderer.plugins.prepare
        */
-      type t;
+      type t = T.webGLPrepare;
+      external create : renderer::T.webGLRenderer => unit => t =
+        "WebGLPrepare" [@@bs.new] [@@bs.scope "Prepare"] [@@bs.module ("pixi.js", "PIXI")];
     };
-  };
-  /*
-   CountLimiter limits the number of items handled by a {@link PIXI.prepare.BasePrepare} to a specified
-   number of items per frame.
-   */
-  module CountLimiter = {
-    /*
-     CountLimiter limits the number of items handled by a {@link PIXI.prepare.BasePrepare} to a specified
-     number of items per frame.
-     */
-    type t;
   };
   /*
    TimeLimiter limits the number of items handled by a {@link PIXI.BasePrepare} to a specified
@@ -9305,202 +9476,279 @@ module Impl = {
      TimeLimiter limits the number of items handled by a {@link PIXI.BasePrepare} to a specified
      number of milliseconds per frame.
      */
-    type t;
-  };
-  module WebGLGraphicsData = {
-    /*
-     The current WebGL drawing context
-     */
-    external gl : t => ReasonJs.Gl.glT = "" [@@bs.get];
-    /*
-     The current WebGL drawing context
-     */
-    external setGl : t => ReasonJs.Gl.glT => unit = "gl" [@@bs.set];
-    /*
-     An array of color components (r,g,b)
-     */
-    external color : t => array float = "" [@@bs.get];
-    /*
-     An array of color components (r,g,b)
-     */
-    external setColor : t => array float => unit = "color" [@@bs.set];
-    /*
-     An array of points to draw
-     */
-    external points : t => array Point.t = "" [@@bs.get];
-    /*
-     An array of points to draw
-     */
-    external setPoints : t => array Point.t => unit = "points" [@@bs.set];
-    /*
-     The indices of the vertices
-     */
-    external indices : t => array float = "" [@@bs.get];
-    /*
-     The indices of the vertices
-     */
-    external setIndices : t => array float => unit = "indices" [@@bs.set];
-    /*
-     The main buffer
-     */
-    external buffer : t => ReasonJs.Gl.bufferT = "" [@@bs.get];
-    /*
-     The main buffer
-     */
-    external setBuffer : t => ReasonJs.Gl.bufferT => unit = "buffer" [@@bs.set];
-    /*
-     The index buffer
-     */
-    external indexBuffer : t => ReasonJs.Gl.bufferT = "" [@@bs.get];
-    /*
-     The index buffer
-     */
-    external setIndexBuffer : t => ReasonJs.Gl.bufferT => unit = "indexBuffer" [@@bs.set];
-    /*
-     Whether this graphics is dirty or not
-     */
-    external dirty : t => Js.boolean = "" [@@bs.get];
-    /*
-     Whether this graphics is dirty or not
-     */
-    external setDirty : t => Js.boolean => unit = "dirty" [@@bs.set];
-    /*
-     Whether this graphics is nativeLines or not
-     */
-    external nativeLines : t => Js.boolean = "" [@@bs.get];
-    /*
-     Whether this graphics is nativeLines or not
-     */
-    external setNativeLines : t => Js.boolean => unit = "nativeLines" [@@bs.set];
-    external shader : t => Shader.t = "" [@@bs.get];
-    external setShader : t => Shader.t => unit = "shader" [@@bs.set];
-  };
-  module SpriteRenderer = {
-    /*
-     Number of values sent in the vertex buffer.
-     aVertexPosition(2), aTextureCoord(1), aColor(1), aTextureId(1) = 5
-     */
-    external vertSize : t => float = "" [@@bs.get];
-    /*
-     Number of values sent in the vertex buffer.
-     aVertexPosition(2), aTextureCoord(1), aColor(1), aTextureId(1) = 5
-     */
-    external setVertSize : t => float => unit = "vertSize" [@@bs.set];
-    /*
-     The size of the vertex information in bytes.
-     */
-    external vertByteSize : t => float = "" [@@bs.get];
-    /*
-     The size of the vertex information in bytes.
-     */
-    external setVertByteSize : t => float => unit = "vertByteSize" [@@bs.set];
-    /*
-     The number of images in the SpriteRenderer before it flushes.
-     */
-    external size : t => float = "" [@@bs.get];
-    /*
-     The number of images in the SpriteRenderer before it flushes.
-     */
-    external setSize : t => float => unit = "size" [@@bs.set];
-    /*
-     Holds the indices of the geometry (quads) to draw
-     */
-    external indices : t => unit /* unknown js type: Uint16Array */ = "" [@@bs.get];
-    /*
-     Holds the indices of the geometry (quads) to draw
-     */
-    external setIndices : t => unit /* unknown js type: Uint16Array */ => unit =
-      "indices" [@@bs.set];
-    /*
-     The default shaders that is used if a sprite doesn't have a more specific one.
-     there is a shader for each number of textures that can be rendererd.
-     These shaders will also be generated on the fly as required.
-     */
-    external shader : t => array Shader.t = "" [@@bs.get];
-    /*
-     The default shaders that is used if a sprite doesn't have a more specific one.
-     there is a shader for each number of textures that can be rendererd.
-     These shaders will also be generated on the fly as required.
-     */
-    external setShader : t => array Shader.t => unit = "shader" [@@bs.set];
-    /*
-     The renderer this manager works for.
-     */
-    external renderer : t => WebGLRenderer.t = "" [@@bs.get];
-    /*
-     The renderer this manager works for.
-     */
-    external setRenderer : t => WebGLRenderer.t => unit = "renderer" [@@bs.set];
-  };
-  module ParticleBuffer = {
-    /*
-     The current WebGL drawing context.
-     */
-    external gl : t => ReasonJs.Gl.glT = "" [@@bs.get];
-    /*
-     The current WebGL drawing context.
-     */
-    external setGl : t => ReasonJs.Gl.glT => unit = "gl" [@@bs.set];
-    /*
-     Size of a single vertex.
-     */
-    external vertSize : t => float = "" [@@bs.get];
-    /*
-     Size of a single vertex.
-     */
-    external setVertSize : t => float => unit = "vertSize" [@@bs.set];
-    /*
-     Size of a single vertex in bytes.
-     */
-    external vertByteSize : t => float = "" [@@bs.get];
-    /*
-     Size of a single vertex in bytes.
-     */
-    external setVertByteSize : t => float => unit = "vertByteSize" [@@bs.set];
-    /*
-     The number of particles the buffer can hold
-     */
-    external size : t => float = "" [@@bs.get];
-    /*
-     The number of particles the buffer can hold
-     */
-    external setSize : t => float => unit = "size" [@@bs.set];
-    /*
-     A list of the properties that are dynamic.
-     */
-    external dynamicProperties : t => array unit /* unknown js type: object */ = "" [@@bs.get];
-    /*
-     A list of the properties that are dynamic.
-     */
-    external setDynamicProperties : t => array unit /* unknown js type: object */ => unit =
-      "dynamicProperties" [@@bs.set];
-    /*
-     A list of the properties that are static.
-     */
-    external staticProperties : t => array unit /* unknown js type: object */ = "" [@@bs.get];
-    /*
-     A list of the properties that are static.
-     */
-    external setStaticProperties : t => array unit /* unknown js type: object */ => unit =
-      "staticProperties" [@@bs.set];
-    /*
-     Holds the indices of the geometry (quads) to draw
-     */
-    external indices : t => unit /* unknown js type: Uint16Array */ = "" [@@bs.get];
-    /*
-     Holds the indices of the geometry (quads) to draw
-     */
-    external setIndices : t => unit /* unknown js type: Uint16Array */ => unit =
-      "indices" [@@bs.set];
-  };
-  module ParticleRenderer = {
-    /*
-     The default shader that is used if a sprite doesn't have a more specific one.
-     */
-    external shader : t => Shader.t = "" [@@bs.get];
-    /*
-     The default shader that is used if a sprite doesn't have a more specific one.
-     */
-    external setShader : t => Shader.t => unit = "shader" [@@bs.set];
+    type t = T.timeLimiter;
+    external create : maxMilliseconds::float => unit => t =
+      "TimeLimiter" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
   };
 };
+
+type accessibilityManager;
+
+type application;
+
+type shader;
+
+type bounds;
+
+type container;
+
+type displayObject;
+
+type transform;
+
+type transformBase;
+
+type transformStatic;
+
+type graphics;
+
+type graphicsData;
+
+type graphicsRenderer;
+
+type primitiveShader;
+
+type groupD8;
+
+type matrix;
+
+type observablePoint;
+
+type point;
+
+type circle;
+
+type ellipse;
+
+type polygon;
+
+type rectangle;
+
+type roundedRectangle;
+
+type systemRenderer;
+
+type canvasRenderer;
+
+type canvasMaskManager;
+
+type canvasRenderTarget;
+
+type textureGarbageCollector;
+
+type textureManager;
+
+type webGLRenderer;
+
+type webGLState;
+
+type filter;
+
+type spriteMaskFilter;
+
+type blendModeManager;
+
+type filterState;
+
+type filterManager;
+
+type maskManager;
+
+type stencilManager;
+
+type webGLManager;
+
+type objectRenderer;
+
+type quad;
+
+type renderTarget;
+
+type sprite;
+
+type canvasTinter;
+
+type buffer;
+
+type text;
+
+type textMetrics;
+
+type fontMetrics;
+
+type textStyle;
+
+type baseRenderTexture;
+
+type baseTexture;
+
+type renderTexture;
+
+type spritesheet;
+
+type texture;
+
+type videoBaseTexture;
+
+type ticker;
+
+type eventEmitter;
+
+type canvasExtract;
+
+type webGLExtract;
+
+type animatedSprite;
+
+type bitmapText;
+
+type textureTransform;
+
+type tilingSprite;
+
+type cacheData;
+
+type tilingSpriteRenderer;
+
+type blurFilter;
+
+type blurXFilter;
+
+type blurYFilter;
+
+type colorMatrixFilter;
+
+type displacementFilter;
+
+type fxaaFilter;
+
+type noiseFilter;
+
+type voidFilter;
+
+type interactionData;
+
+type interactionEvent;
+
+type interactionManager;
+
+type resource;
+
+type loader;
+
+type mesh;
+
+type nineSlicePlane;
+
+type plane;
+
+type rope;
+
+type meshRenderer;
+
+type particleContainer;
+
+type particleShader;
+
+type basePrepare;
+
+type canvasPrepare;
+
+type countLimiter;
+
+type timeLimiter;
+
+type webGLPrepare;
+
+include
+  Impl {
+    type nonrec accessibilityManager = accessibilityManager;
+    type nonrec application = application;
+    type nonrec shader = shader;
+    type nonrec bounds = bounds;
+    type nonrec container = container;
+    type nonrec displayObject = displayObject;
+    type nonrec transform = transform;
+    type nonrec transformBase = transformBase;
+    type nonrec transformStatic = transformStatic;
+    type nonrec graphics = graphics;
+    type nonrec graphicsData = graphicsData;
+    type nonrec graphicsRenderer = graphicsRenderer;
+    type nonrec primitiveShader = primitiveShader;
+    type nonrec groupD8 = groupD8;
+    type nonrec matrix = matrix;
+    type nonrec observablePoint = observablePoint;
+    type nonrec point = point;
+    type nonrec circle = circle;
+    type nonrec ellipse = ellipse;
+    type nonrec polygon = polygon;
+    type nonrec rectangle = rectangle;
+    type nonrec roundedRectangle = roundedRectangle;
+    type nonrec systemRenderer = systemRenderer;
+    type nonrec canvasRenderer = canvasRenderer;
+    type nonrec canvasMaskManager = canvasMaskManager;
+    type nonrec canvasRenderTarget = canvasRenderTarget;
+    type nonrec textureGarbageCollector = textureGarbageCollector;
+    type nonrec textureManager = textureManager;
+    type nonrec webGLRenderer = webGLRenderer;
+    type nonrec webGLState = webGLState;
+    type nonrec filter = filter;
+    type nonrec spriteMaskFilter = spriteMaskFilter;
+    type nonrec blendModeManager = blendModeManager;
+    type nonrec filterState = filterState;
+    type nonrec filterManager = filterManager;
+    type nonrec maskManager = maskManager;
+    type nonrec stencilManager = stencilManager;
+    type nonrec webGLManager = webGLManager;
+    type nonrec objectRenderer = objectRenderer;
+    type nonrec quad = quad;
+    type nonrec renderTarget = renderTarget;
+    type nonrec sprite = sprite;
+    type nonrec canvasTinter = canvasTinter;
+    type nonrec buffer = buffer;
+    type nonrec text = text;
+    type nonrec textMetrics = textMetrics;
+    type nonrec fontMetrics = fontMetrics;
+    type nonrec textStyle = textStyle;
+    type nonrec baseRenderTexture = baseRenderTexture;
+    type nonrec baseTexture = baseTexture;
+    type nonrec renderTexture = renderTexture;
+    type nonrec spritesheet = spritesheet;
+    type nonrec texture = texture;
+    type nonrec videoBaseTexture = videoBaseTexture;
+    type nonrec ticker = ticker;
+    type nonrec eventEmitter = eventEmitter;
+    type nonrec canvasExtract = canvasExtract;
+    type nonrec webGLExtract = webGLExtract;
+    type nonrec animatedSprite = animatedSprite;
+    type nonrec bitmapText = bitmapText;
+    type nonrec textureTransform = textureTransform;
+    type nonrec tilingSprite = tilingSprite;
+    type nonrec cacheData = cacheData;
+    type nonrec tilingSpriteRenderer = tilingSpriteRenderer;
+    type nonrec blurFilter = blurFilter;
+    type nonrec blurXFilter = blurXFilter;
+    type nonrec blurYFilter = blurYFilter;
+    type nonrec colorMatrixFilter = colorMatrixFilter;
+    type nonrec displacementFilter = displacementFilter;
+    type nonrec fxaaFilter = fxaaFilter;
+    type nonrec noiseFilter = noiseFilter;
+    type nonrec voidFilter = voidFilter;
+    type nonrec interactionData = interactionData;
+    type nonrec interactionEvent = interactionEvent;
+    type nonrec interactionManager = interactionManager;
+    type nonrec resource = resource;
+    type nonrec loader = loader;
+    type nonrec mesh = mesh;
+    type nonrec nineSlicePlane = nineSlicePlane;
+    type nonrec plane = plane;
+    type nonrec rope = rope;
+    type nonrec meshRenderer = meshRenderer;
+    type nonrec particleContainer = particleContainer;
+    type nonrec particleShader = particleShader;
+    type nonrec basePrepare = basePrepare;
+    type nonrec canvasPrepare = canvasPrepare;
+    type nonrec countLimiter = countLimiter;
+    type nonrec timeLimiter = timeLimiter;
+    type nonrec webGLPrepare = webGLPrepare;
+  };

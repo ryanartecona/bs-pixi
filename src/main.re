@@ -43,3 +43,10 @@ let _ = {
   /* app |> Application.destroy Js.true_; */
   ()
 };
+
+let _ = {
+  open PixiAuto;
+  let transform = Transform.create ();
+  /* let countLimiter = CountLimiter.create 10. (); */
+  ()
+};

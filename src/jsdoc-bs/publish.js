@@ -5,6 +5,7 @@ var ppJson = function(x) {
 };
 
 var titleCase = function(s) {
+  // anything -> Anything
   return s.replace(/^./, function(c) {
     return c.toUpperCase();
   });
@@ -69,6 +70,7 @@ var jsToBsType = (function() {
     number: "float",
     Number: "float",
     HTMLCanvasElement: "Dom.element",
+    // CanvasRenderingContext2d: "Bs_webapi.Canvas.Canvas2d.t",
     WebGLRenderingContext: "ReasonJs.Gl.glT",
     WebGLBuffer: "ReasonJs.Gl.bufferT"
   };
@@ -84,12 +86,10 @@ var jsToBsType = (function() {
         });
       } else {
         var cleanLongname = cleanupLongname(jsTypeName);
-        var classModule = getItem(
-          modules,
-          modulePathFromLongname(cleanLongname)
-        );
+        var classModulePath = modulePathFromLongname(cleanLongname);
+        var classModule = getItem(modules, classModulePath);
         if (classModule && classModule.items["t"]) {
-          return `${cleanLongname}.t`;
+          return `T.${camelCase(classModulePath[classModulePath.length - 1])}`;
         }
       }
     } else if (
@@ -109,14 +109,28 @@ var formatDescription = function(desc) {
   return desc.replace(/<p>([^<]*)<\/p>/gm, "$1\n").trim();
 };
 
-var emitModuleType = classes => {
+var emitModuleType = (classes, name) => {
+  name = name || "TYPES";
   var emittedClassTypes = classes.map(c => `type ${c};`).join("\n");
-  return `module type PixiTypes = {
+  return `module type ${name} = {
 ${emittedClassTypes}
 };`;
 };
 
-var emitModuleImpl = function(item, path) {
+var emitTypes = classes => {
+  return classes.map(c => `type ${c};`).join("\n");
+};
+
+var emitIncludeImpl = classes => {
+  var emittedClassBindings = classes
+    .map(c => `type nonrec ${c} = ${c};`)
+    .join("\n");
+  return `include Impl {
+${emittedClassBindings}
+};`;
+};
+
+var emitModule = function(modules, item, path, arg) {
   var name = path[path.length - 1];
   var descComment = item.description
     ? `/*
@@ -125,7 +139,9 @@ ${formatDescription(item.description)}
 `
     : "";
   if (item["type"] === "type") {
-    return `${descComment} type ${name};`;
+    return `${descComment} type ${name} = T.${camelCase(
+      path[path.length - 2]
+    )};`;
   } else if (item.type === "getter") {
     var getterName = unkeyword(camelCase(name));
     var r = `${descComment} external ${getterName} : t => ${item.bsType} = "${getterName ===
@@ -140,25 +156,50 @@ ${descComment} external set${titleCase(
       )} : t => ${item.bsType} => unit = "${name}" [@@bs.set];`;
     }
     return r;
+  } else if (item.type === "constructor") {
+    var paramTypes = item.params.map(p => {
+      // TODO: support optionals
+      return `${p.name}::${jsToBsType(modules, p.type.names)}`;
+    });
+    var scope = path.slice(1, -2);
+    var scopeAttr = _.isEqual(scope, [])
+      ? ""
+      : `[@@bs.scope (${scope.map(s => `"${s}"`).join(",")})]`;
+    return `external ${name} : ${paramTypes
+      .map(s => s + " => ")
+      .join(
+        ""
+      )} unit => t = "${item.name}" [@@bs.new] ${scopeAttr} [@@bs.module ("pixi.js", "PIXI")];`;
   } else if (item.type === "module") {
     if (item.private) {
       return "";
     }
     var module = item;
-    var pprintedItem = [];
+    var emitItems = [];
     for (var modname in module["items"]) {
-      pprintedItem.push(
-        emitModuleImpl(module["items"][modname], path.concat(modname))
+      emitItems.push(
+        emitModule(modules, module["items"][modname], path.concat(modname))
       );
     }
-    return `${descComment} module ${name} = {
-${pprintedItem.join("\n")}
+    if (arg) {
+      return `${descComment} module ${name} (${arg}) => {
+${emitItems.join("\n")}
 };`;
+    } else {
+      return `${descComment} module ${name} = {
+${emitItems.join("\n")}
+};`;
+    }
   }
 };
 
 var emit = (modules, classes) => {
-  return emitModuleType(classes) + emitModuleImpl(modules, ["Impl"]);
+  return (
+    emitModuleType(classes, "TYPES") +
+    emitModule(modules, modules, ["Impl"], "T: TYPES") +
+    emitTypes(classes) +
+    emitIncludeImpl(classes)
+  );
 };
 
 function cleanupLongname(longname) {
@@ -173,6 +214,7 @@ function cleanupLongname(longname) {
       "PIXI.interaction.InteractionTrackingData#InteractionTrackingData",
       "PIXI.interaction.InteractionTrackingData"
     )
+    .replace("PIXI.CountLimiter", "PIXI.prepare.CountLimiter")
     // Sometimes `.memberof` has stuff like 'PIXI.DisplayObject#core', so
     // 'DisplayObject#core' -> 'DisplayObject'
     .replace(/#\w+\./, ".")
@@ -201,6 +243,45 @@ var ensureClassExists = (classes, c) => {
   return c;
 };
 
+var addConstructor = (module, datum) => {
+  var params = [];
+  _.forEach(datum.params, p => {
+    if (!/\./.test(p.name)) {
+      if (p.type.names.length === 1 && p.type.names[0] === "object") {
+        params.push(_.merge({}, p, { params: [] }));
+      } else {
+        params.push(p);
+      }
+    }
+  });
+  _.forEach(datum.params, p => {
+    if (/\./.test(p.name)) {
+      var parts = p.name.split(".", 2);
+      var parentParamName = parts[0];
+      var childParamName = parts[1];
+      var parentParam = _.find(params, other => {
+        return other.name === parentParamName;
+      });
+      if (parentParam) {
+        parentParam.params.push(_.merge({}, p, { name: childParamName }));
+      }
+    }
+  });
+
+  console.error(`constructor ${datum.name} has params:`);
+  ppJson(params);
+
+  if (module.items["create"]) {
+    console.error(`constructor for class ${datum.name} duplicated`);
+  } else {
+    module.items["create"] = {
+      name: datum.name,
+      type: "constructor",
+      params
+    };
+  }
+};
+
 exports.publish = function(taffyData, opts) {
   var data = taffyData;
   var modules = mkModule();
@@ -220,26 +301,27 @@ exports.publish = function(taffyData, opts) {
   });
 
   data().each(function(datum) {
-    if (
-      datum.kind === "class" &&
-      datum.access !== "private" &&
-      !datum.deprecated
-    ) {
-      // if (/MovieClip/.test(datum.longname)) {
+    if (datum.kind === "class" && !datum.deprecated) {
+      // if (/Application$/.test(datum.longname)) {
       //   ppJson(datum);
       // }
+      var isPrivateClass = datum.access === "private";
       var m = ensureModuleExists(
         modules,
         modulePathFromLongname(datum.longname)
       );
       m.description = datum.classdesc;
-      m.private = datum.access === "private";
+      m.private = isPrivateClass;
+      m.name = datum.name;
       m.items["t"] = {
         type: "type",
         description: datum.classdesc,
         name: datum.name
       };
-      ensureClassExists(classes, camelCase(datum.name));
+      if (!isPrivateClass) {
+        ensureClassExists(classes, camelCase(datum.name));
+        addConstructor(m, datum);
+      }
     }
   });
 
