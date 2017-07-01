@@ -90,16 +90,6 @@ module type TYPES = {
 
 module Impl (T: TYPES) => {
   module Accessibility = {
-    /*
-     The Accessibility manager recreates the ability to tab and have content read by screen
-     readers. This is very important as it can possibly help people with disabilities access pixi
-     content.
-
-     Much like interaction any DisplayObject can be made accessible. This manager will map the
-     events as if the mouse was being used, minimizing the effort required to implement.
-
-     An instance of this class is automatically created by default, and can be found at renderer.plugins.accessibility
-     */
     module AccessibilityManager = {
       /*
        The Accessibility manager recreates the ability to tab and have content read by screen
@@ -134,11 +124,6 @@ module Impl (T: TYPES) => {
       external setRenderer : t => T.systemRenderer => unit = "renderer" [@@bs.set];
     };
   };
-  /*
-   Convenience class to create a new PIXI application.
-   This class automatically creates the renderer, ticker
-   and root container.
-   */
   module Application = {
     /*
      Convenience class to create a new PIXI application.
@@ -146,7 +131,30 @@ module Impl (T: TYPES) => {
      and root container.
      */
     type t = T.application;
-    external create : options::unit /* unknown js type: object */ => unit => t =
+    type createOptions;
+    /*
+     The optional renderer parameters
+     */
+    external mkCreateOptions :
+      width::float? =>
+      height::float? =>
+      view::Dom.element? =>
+      transparent::Js.boolean? =>
+      antialias::Js.boolean? =>
+      preserveDrawingBuffer::Js.boolean? =>
+      resolution::float? =>
+      forceCanvas::Js.boolean? =>
+      backgroundColor::float? =>
+      clearBeforeRender::Js.boolean? =>
+      roundPixels::Js.boolean? =>
+      forceFXAA::Js.boolean? =>
+      legacy::Js.boolean? =>
+      sharedTicker::Js.boolean? =>
+      sharedLoader::Js.boolean? =>
+      unit =>
+      createOptions =
+      "" [@@bs.obj];
+    external create : options::createOptions? => unit => t =
       "Application" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The default options, so we mixin functionality later.
@@ -200,10 +208,6 @@ module Impl (T: TYPES) => {
      */
     external setLoader : t => T.loader => unit = "loader" [@@bs.set];
   };
-  /*
-   Wrapper class, webGL Shader for Pixi.
-   Adds precision string if vertexSrc or fragmentSrc have no mention of it.
-   */
   module Shader = {
     /*
      Wrapper class, webGL Shader for Pixi.
@@ -211,18 +215,9 @@ module Impl (T: TYPES) => {
      */
     type t = T.shader;
     external create :
-      gl::ReasonJs.Gl.glT =>
-      vertexSrc::unit /* unknown js type: string|Array.<string> */ =>
-      fragmentSrc::unit /* unknown js type: string|Array.<string> */ =>
-      unit =>
-      t =
+      gl::ReasonJs.Gl.glT => vertexSrc::array string => fragmentSrc::array string => unit => t =
       "Shader" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
   };
-  /*
-   'Builder' pattern for bounds rectangles
-   Axis-Aligned Bounding Box
-   It is not a shape! Its mutable thing, no 'EMPTY' or that kind of problems
-   */
   module Bounds = {
     /*
      'Builder' pattern for bounds rectangles
@@ -240,13 +235,6 @@ module Impl (T: TYPES) => {
     external maxY : t => float = "" [@@bs.get];
     external setMaxY : t => float => unit = "maxY" [@@bs.set];
   };
-  /*
-   A Container represents a collection of display objects.
-   It is the base class of all display objects that act as a container for other objects.
-
-   <pre class="prettyprint source lang-js"><code>let container = new PIXI.Container();
-   container.addChild(sprite);</code></pre>
-   */
   module Container = {
     /*
      A Container represents a collection of display objects.
@@ -541,10 +529,6 @@ module Impl (T: TYPES) => {
      */
     external setCursor : t => string => unit = "cursor" [@@bs.set];
   };
-  /*
-   The base class for all objects that are rendered on the screen.
-   This is an abstract class and should not be used on its own rather it should be extended.
-   */
   module DisplayObject = {
     /*
      The base class for all objects that are rendered on the screen.
@@ -814,10 +798,6 @@ module Impl (T: TYPES) => {
      */
     external setCursor : t => string => unit = "cursor" [@@bs.set];
   };
-  /*
-   Generic class to deal with traditional 2D matrix transforms
-   local transformation is calculated from position,scale,skew and rotation
-   */
   module Transform = {
     /*
      Generic class to deal with traditional 2D matrix transforms
@@ -882,9 +862,6 @@ module Impl (T: TYPES) => {
      */
     external setLocalTransform : t => T.matrix => unit = "localTransform" [@@bs.set];
   };
-  /*
-   Generic class to deal with traditional 2D matrix transforms
-   */
   module TransformBase = {
     /*
      Generic class to deal with traditional 2D matrix transforms
@@ -908,9 +885,6 @@ module Impl (T: TYPES) => {
      */
     external setLocalTransform : t => T.matrix => unit = "localTransform" [@@bs.set];
   };
-  /*
-   Transform that takes care about its versions
-   */
   module TransformStatic = {
     /*
      Transform that takes care about its versions
@@ -974,17 +948,13 @@ module Impl (T: TYPES) => {
      */
     external setLocalTransform : t => T.matrix => unit = "localTransform" [@@bs.set];
   };
-  /*
-   The Graphics class contains methods used to draw primitive shapes such as lines, circles and
-   rectangles to the display, and to color and fill them.
-   */
   module Graphics = {
     /*
      The Graphics class contains methods used to draw primitive shapes such as lines, circles and
      rectangles to the display, and to color and fill them.
      */
     type t = T.graphics;
-    external create : nativeLines::Js.boolean => unit => t =
+    external create : nativeLines::Js.boolean? => unit => t =
       "Graphics" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The alpha value used when filling the Graphics object.
@@ -1358,9 +1328,6 @@ module Impl (T: TYPES) => {
      */
     external setCursor : t => string => unit = "cursor" [@@bs.set];
   };
-  /*
-   A GraphicsData object.
-   */
   module GraphicsData = {
     /*
      A GraphicsData object.
@@ -1379,9 +1346,6 @@ module Impl (T: TYPES) => {
       t =
       "GraphicsData" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
   };
-  /*
-   Renders the graphics object.
-   */
   module GraphicsRenderer = {
     /*
      Renders the graphics object.
@@ -1398,9 +1362,6 @@ module Impl (T: TYPES) => {
      */
     external setRenderer : t => T.webGLRenderer => unit = "renderer" [@@bs.set];
   };
-  /*
-   This shader is used to draw simple primitive shapes for {@link PIXI.Graphics}.
-   */
   module PrimitiveShader = {
     /*
      This shader is used to draw simple primitive shapes for {@link PIXI.Graphics}.
@@ -1413,13 +1374,6 @@ module Impl (T: TYPES) => {
     type t = T.groupD8;
     external create : unit => t = "GroupD8" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
   };
-  /*
-   The pixi Matrix class as an object, which makes it a lot faster,
-   here is a representation of it :
-   | a | b | tx|
-   | c | d | ty|
-   | 0 | 0 | 1 |
-   */
   module Matrix = {
     /*
      The pixi Matrix class as an object, which makes it a lot faster,
@@ -1430,7 +1384,7 @@ module Impl (T: TYPES) => {
      */
     type t = T.matrix;
     external create :
-      a::float => b::float => c::float => d::float => tx::float => ty::float => unit => t =
+      a::float? => b::float? => c::float? => d::float? => tx::float? => ty::float? => unit => t =
       "Matrix" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     external a : t => float = "" [@@bs.get];
     external setA : t => float => unit = "a" [@@bs.set];
@@ -1445,11 +1399,6 @@ module Impl (T: TYPES) => {
     external ty : t => float = "" [@@bs.get];
     external setTy : t => float => unit = "ty" [@@bs.set];
   };
-  /*
-   The Point object represents a location in a two-dimensional coordinate system, where x represents
-   the horizontal axis and y represents the vertical axis.
-   An observable point is a point that triggers a callback when the point's position is changed.
-   */
   module ObservablePoint = {
     /*
      The Point object represents a location in a two-dimensional coordinate system, where x represents
@@ -1460,8 +1409,8 @@ module Impl (T: TYPES) => {
     external create :
       cb::unit /* unknown js type: function */ =>
       scope::unit /* unknown js type: object */ =>
-      x::float =>
-      y::float =>
+      x::float? =>
+      y::float? =>
       unit =>
       t =
       "ObservablePoint" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
@@ -1482,32 +1431,25 @@ module Impl (T: TYPES) => {
      */
     external setY : t => float => unit = "y" [@@bs.set];
   };
-  /*
-   The Point object represents a location in a two-dimensional coordinate system, where x represents
-   the horizontal axis and y represents the vertical axis.
-   */
   module Point = {
     /*
      The Point object represents a location in a two-dimensional coordinate system, where x represents
      the horizontal axis and y represents the vertical axis.
      */
     type t = T.point;
-    external create : x::float => y::float => unit => t =
+    external create : x::float? => y::float? => unit => t =
       "Point" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     external x : t => float = "" [@@bs.get];
     external setX : t => float => unit = "x" [@@bs.set];
     external y : t => float = "" [@@bs.get];
     external setY : t => float => unit = "y" [@@bs.set];
   };
-  /*
-   The Circle object can be used to specify a hit area for displayObjects
-   */
   module Circle = {
     /*
      The Circle object can be used to specify a hit area for displayObjects
      */
     type t = T.circle;
-    external create : x::float => y::float => radius::float => unit => t =
+    external create : x::float? => y::float? => radius::float? => unit => t =
       "Circle" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     external x : t => float = "" [@@bs.get];
     external setX : t => float => unit = "x" [@@bs.set];
@@ -1520,15 +1462,12 @@ module Impl (T: TYPES) => {
      */
     external type_ : t => float = "type" [@@bs.get];
   };
-  /*
-   The Ellipse object can be used to specify a hit area for displayObjects
-   */
   module Ellipse = {
     /*
      The Ellipse object can be used to specify a hit area for displayObjects
      */
     type t = T.ellipse;
-    external create : x::float => y::float => width::float => height::float => unit => t =
+    external create : x::float? => y::float? => width::float? => height::float? => unit => t =
       "Ellipse" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     external x : t => float = "" [@@bs.get];
     external setX : t => float => unit = "x" [@@bs.set];
@@ -1561,17 +1500,13 @@ module Impl (T: TYPES) => {
      */
     external type_ : t => float = "type" [@@bs.get];
   };
-  /*
-   Rectangle object is an area defined by its position, as indicated by its top-left corner
-   point (x, y) and by its width and its height.
-   */
   module Rectangle = {
     /*
      Rectangle object is an area defined by its position, as indicated by its top-left corner
      point (x, y) and by its width and its height.
      */
     type t = T.rectangle;
-    external create : x::float => y::float => width::float => height::float => unit => t =
+    external create : x::float? => y::float? => width::float? => height::float? => unit => t =
       "Rectangle" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     external x : t => float = "" [@@bs.get];
     external setX : t => float => unit = "x" [@@bs.set];
@@ -1618,10 +1553,6 @@ module Impl (T: TYPES) => {
      */
     external setBottom : t => float => unit = "bottom" [@@bs.set];
   };
-  /*
-   The Rounded Rectangle object is an area that has nice rounded corners, as indicated by its
-   top-left corner point (x, y) and by its width and its height and its radius.
-   */
   module RoundedRectangle = {
     /*
      The Rounded Rectangle object is an area that has nice rounded corners, as indicated by its
@@ -1629,7 +1560,7 @@ module Impl (T: TYPES) => {
      */
     type t = T.roundedRectangle;
     external create :
-      x::float => y::float => width::float => height::float => radius::float => unit => t =
+      x::float? => y::float? => width::float? => height::float? => radius::float? => unit => t =
       "RoundedRectangle" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     external x : t => float = "" [@@bs.get];
     external setX : t => float => unit = "x" [@@bs.set];
@@ -1646,17 +1577,32 @@ module Impl (T: TYPES) => {
      */
     external type_ : t => float = "type" [@@bs.get];
   };
-  /*
-   The SystemRenderer is the base for a Pixi Renderer. It is extended by the {@link PIXI.CanvasRenderer}
-   and {@link PIXI.WebGLRenderer} which can be used for rendering a Pixi scene.
-   */
   module SystemRenderer = {
     /*
      The SystemRenderer is the base for a Pixi Renderer. It is extended by the {@link PIXI.CanvasRenderer}
      and {@link PIXI.WebGLRenderer} which can be used for rendering a Pixi scene.
      */
     type t = T.systemRenderer;
-    external create : system::string => options::unit /* unknown js type: object */ => unit => t =
+    type createOptions;
+    /*
+     The optional renderer parameters
+     */
+    external mkCreateOptions :
+      width::float? =>
+      height::float? =>
+      view::Dom.element? =>
+      transparent::Js.boolean? =>
+      autoResize::Js.boolean? =>
+      antialias::Js.boolean? =>
+      resolution::float? =>
+      preserveDrawingBuffer::Js.boolean? =>
+      clearBeforeRender::Js.boolean? =>
+      backgroundColor::float? =>
+      roundPixels::Js.boolean? =>
+      unit =>
+      createOptions =
+      "" [@@bs.obj];
+    external create : system::string => options::createOptions? => unit => t =
       "SystemRenderer" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The supplied constructor options.
@@ -1777,11 +1723,6 @@ module Impl (T: TYPES) => {
      */
     external setBackgroundColor : t => float => unit = "backgroundColor" [@@bs.set];
   };
-  /*
-   The CanvasRenderer draws the scene and all its content onto a 2d canvas. This renderer should
-   be used for browsers that do not support WebGL. Don't forget to add the CanvasRenderer.view to
-   your DOM or you will not see anything :)
-   */
   module CanvasRenderer = {
     /*
      The CanvasRenderer draws the scene and all its content onto a 2d canvas. This renderer should
@@ -1789,7 +1730,26 @@ module Impl (T: TYPES) => {
      your DOM or you will not see anything :)
      */
     type t = T.canvasRenderer;
-    external create : options::unit /* unknown js type: object */ => unit => t =
+    type createOptions;
+    /*
+     The optional renderer parameters
+     */
+    external mkCreateOptions :
+      width::float? =>
+      height::float? =>
+      view::Dom.element? =>
+      transparent::Js.boolean? =>
+      autoResize::Js.boolean? =>
+      antialias::Js.boolean? =>
+      resolution::float? =>
+      preserveDrawingBuffer::Js.boolean? =>
+      clearBeforeRender::Js.boolean? =>
+      backgroundColor::float? =>
+      roundPixels::Js.boolean? =>
+      unit =>
+      createOptions =
+      "" [@@bs.obj];
+    external create : options::createOptions? => unit => t =
       "CanvasRenderer" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The root canvas 2d context that everything is drawn with.
@@ -1967,9 +1927,6 @@ module Impl (T: TYPES) => {
      */
     external setBackgroundColor : t => float => unit = "backgroundColor" [@@bs.set];
   };
-  /*
-   A set of functions used to handle masking.
-   */
   module CanvasMaskManager = {
     /*
      A set of functions used to handle masking.
@@ -1978,15 +1935,12 @@ module Impl (T: TYPES) => {
     external create : renderer::T.canvasRenderer => unit => t =
       "CanvasMaskManager" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
   };
-  /*
-   Creates a Canvas element of the given size.
-   */
   module CanvasRenderTarget = {
     /*
      Creates a Canvas element of the given size.
      */
     type t = T.canvasRenderTarget;
-    external create : width::float => height::float => resolution::float => unit => t =
+    external create : width::float => height::float => resolution::float? => unit => t =
       "CanvasRenderTarget" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The Canvas object that belongs to this CanvasRenderTarget.
@@ -2022,10 +1976,6 @@ module Impl (T: TYPES) => {
      */
     external setHeight : t => float => unit = "height" [@@bs.set];
   };
-  /*
-   TextureGarbageCollector. This class manages the GPU and ensures that it does not get clogged
-   up with textures that are no longer being used.
-   */
   module TextureGarbageCollector = {
     /*
      TextureGarbageCollector. This class manages the GPU and ensures that it does not get clogged
@@ -2035,9 +1985,6 @@ module Impl (T: TYPES) => {
     external create : renderer::T.webGLRenderer => unit => t =
       "TextureGarbageCollector" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
   };
-  /*
-   Helper class to create a webGL Texture
-   */
   module TextureManager = {
     /*
      Helper class to create a webGL Texture
@@ -2062,12 +2009,6 @@ module Impl (T: TYPES) => {
      */
     external setGl : t => ReasonJs.Gl.glT => unit = "gl" [@@bs.set];
   };
-  /*
-   The WebGLRenderer draws the scene and all its content onto a webGL enabled canvas. This renderer
-   should be used for browsers that support webGL. This Render works by automatically managing webGLBatchs.
-   So no need for Sprite Batches or Sprite Clouds.
-   Don't forget to add the view to your DOM or you will not see anything :)
-   */
   module WebGLRenderer = {
     /*
      The WebGLRenderer draws the scene and all its content onto a webGL enabled canvas. This renderer
@@ -2076,7 +2017,28 @@ module Impl (T: TYPES) => {
      Don't forget to add the view to your DOM or you will not see anything :)
      */
     type t = T.webGLRenderer;
-    external create : options::unit /* unknown js type: object */ => unit => t =
+    type createOptions;
+    /*
+     The optional renderer parameters
+     */
+    external mkCreateOptions :
+      width::float? =>
+      height::float? =>
+      view::Dom.element? =>
+      transparent::Js.boolean? =>
+      autoResize::Js.boolean? =>
+      antialias::Js.boolean? =>
+      forceFXAA::Js.boolean? =>
+      resolution::float? =>
+      clearBeforeRender::Js.boolean? =>
+      preserveDrawingBuffer::Js.boolean? =>
+      roundPixels::Js.boolean? =>
+      backgroundColor::float? =>
+      legacy::Js.boolean? =>
+      unit =>
+      createOptions =
+      "" [@@bs.obj];
+    external create : options::createOptions? => unit => t =
       "WebGLRenderer" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      The type of this renderer as a standardised const
@@ -2285,9 +2247,6 @@ module Impl (T: TYPES) => {
      */
     external setBackgroundColor : t => float => unit = "backgroundColor" [@@bs.set];
   };
-  /*
-   A WebGL state machines
-   */
   module WebGLState = {
     /*
      A WebGL state machines
@@ -2325,9 +2284,9 @@ module Impl (T: TYPES) => {
   module Filter = {
     type t = T.filter;
     external create :
-      vertexSrc::string =>
-      fragmentSrc::string =>
-      uniforms::unit /* unknown js type: object */ =>
+      vertexSrc::string? =>
+      fragmentSrc::string? =>
+      uniforms::unit /* unknown js type: object */? =>
       unit =>
       t =
       "Filter" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
@@ -2396,9 +2355,6 @@ module Impl (T: TYPES) => {
      */
     external setAutoFit : t => Js.boolean => unit = "autoFit" [@@bs.set];
   };
-  /*
-   The SpriteMaskFilter class
-   */
   module SpriteMaskFilter = {
     /*
      The SpriteMaskFilter class
@@ -2538,9 +2494,6 @@ module Impl (T: TYPES) => {
      */
     external setRenderer : t => T.webGLRenderer => unit = "renderer" [@@bs.set];
   };
-  /*
-   Base for a common object renderer that can be used as a system renderer plugin.
-   */
   module ObjectRenderer = {
     /*
      Base for a common object renderer that can be used as a system renderer plugin.
@@ -2556,9 +2509,6 @@ module Impl (T: TYPES) => {
      */
     external setRenderer : t => T.webGLRenderer => unit = "renderer" [@@bs.set];
   };
-  /*
-   Helper class to create a quad
-   */
   module Quad = {
     /*
      Helper class to create a quad
@@ -2632,11 +2582,11 @@ module Impl (T: TYPES) => {
     type t = T.renderTarget;
     external create :
       gl::ReasonJs.Gl.glT =>
-      width::float =>
-      height::float =>
-      scaleMode::float =>
-      resolution::float =>
-      root::Js.boolean =>
+      width::float? =>
+      height::float? =>
+      scaleMode::float? =>
+      resolution::float? =>
+      root::Js.boolean? =>
       unit =>
       t =
       "RenderTarget" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
@@ -2767,13 +2717,6 @@ module Impl (T: TYPES) => {
      */
     external setRoot : t => Js.boolean => unit = "root" [@@bs.set];
   };
-  /*
-   The Sprite object is the base for all textured objects that are rendered to the screen
-
-   A sprite can be created directly from an image like this:
-
-   <pre class="prettyprint source lang-js"><code>let sprite = new PIXI.Sprite.fromImage('assets/image.png');</code></pre>
-   */
   module Sprite = {
     /*
      The Sprite object is the base for all textured objects that are rendered to the screen
@@ -3155,14 +3098,6 @@ module Impl (T: TYPES) => {
     external setUint32View : t => unit /* unknown js type: Float32Array */ => unit =
       "uint32View" [@@bs.set];
   };
-  /*
-   A Text Object will create a line or multiple lines of text. To split a line you can use '\n' in your text string,
-   or add a wordWrap property set to true and and wordWrapWidth property with a value in the style object.
-
-   A Text can be created directly from a string and a style object
-
-   <pre class="prettyprint source lang-js"><code>let text = new PIXI.Text('This is a pixi text',{fontFamily : 'Arial', fontSize: 24, fill : 0xff1010, align : 'center'});</code></pre>
-   */
   module Text = {
     /*
      A Text Object will create a line or multiple lines of text. To split a line you can use '\n' in your text string,
@@ -3175,8 +3110,8 @@ module Impl (T: TYPES) => {
     type t = T.text;
     external create :
       text::string =>
-      style::unit /* unknown js type: object|PIXI.TextStyle */ =>
-      canvas::Dom.element =>
+      style::unit /* unknown js type: object|PIXI.TextStyle */? =>
+      canvas::Dom.element? =>
       unit =>
       t =
       "Text" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
@@ -3567,9 +3502,6 @@ module Impl (T: TYPES) => {
      */
     external setCursor : t => string => unit = "cursor" [@@bs.set];
   };
-  /*
-   The TextMetrics object represents the measurement of a block of text with a specified style.
-   */
   module TextMetrics = {
     /*
      The TextMetrics object represents the measurement of a block of text with a specified style.
@@ -3592,47 +3524,51 @@ module Impl (T: TYPES) => {
       type t = T.fontMetrics;
     };
   };
-  /*
-   A TextStyle Object decorates a Text Object. It can be shared between
-   multiple Text objects. Changing the style will update all text objects using it.
-   */
   module TextStyle = {
     /*
      A TextStyle Object decorates a Text Object. It can be shared between
      multiple Text objects. Changing the style will update all text objects using it.
      */
     type t = T.textStyle;
-    external create : style::unit /* unknown js type: object */ => unit => t =
+    type createStyle;
+    /*
+     The style parameters
+     */
+    external mkCreateStyle :
+      align::string? =>
+      breakWords::Js.boolean? =>
+      dropShadow::Js.boolean? =>
+      dropShadowAlpha::float? =>
+      dropShadowAngle::float? =>
+      dropShadowBlur::float? =>
+      dropShadowColor::string? =>
+      dropShadowDistance::float? =>
+      fill::
+        unit /* unknown js type: string|Array.<string>|number|Array.<number>|CanvasGradient|CanvasPattern */? =>
+      fillGradientType::float? =>
+      fillGradientStops::array float? =>
+      fontFamily::array string? =>
+      fontSize::unit /* unknown js type: number|string */? =>
+      fontStyle::string? =>
+      fontVariant::string? =>
+      fontWeight::string? =>
+      letterSpacing::float? =>
+      lineHeight::float? =>
+      lineJoin::string? =>
+      miterLimit::float? =>
+      padding::float? =>
+      stroke::unit /* unknown js type: string|number */? =>
+      strokeThickness::float? =>
+      trim::Js.boolean? =>
+      textBaseline::string? =>
+      wordWrap::Js.boolean? =>
+      wordWrapWidth::float? =>
+      unit =>
+      createStyle =
+      "" [@@bs.obj];
+    external create : style::createStyle? => unit => t =
       "TextStyle" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
   };
-  /*
-   A BaseRenderTexture is a special texture that allows any Pixi display object to be rendered to it.
-
-   <p><strong>Hint</strong>: All DisplayObjects (i.e. Sprites) that render to a BaseRenderTexture should be preloaded
-   otherwise black rectangles will be drawn instead.</p>
-   A BaseRenderTexture takes a snapshot of any Display Object given to its render method. The position
-   and rotation of the given Display Objects is ignored. For example:
-
-   <pre class="prettyprint source lang-js"><code>let renderer = PIXI.autoDetectRenderer(1024, 1024, { view: canvas, ratio: 1 });
-   let baseRenderTexture = new PIXI.BaseRenderTexture(renderer, 800, 600);
-   let sprite = PIXI.Sprite.fromImage(&quot;spinObj_01.png&quot;);
-
-   sprite.position.x = 800/2;
-   sprite.position.y = 600/2;
-   sprite.anchor.x = 0.5;
-   sprite.anchor.y = 0.5;
-
-   baseRenderTexture.render(sprite);</code></pre>The Sprite in this case will be rendered using its local transform. To render this sprite at 0,0
-   you can clear the transform
-
-   <pre class="prettyprint source lang-js"><code>
-   sprite.setTransform()
-
-   let baseRenderTexture = new PIXI.BaseRenderTexture(100, 100);
-   let renderTexture = new PIXI.RenderTexture(baseRenderTexture);
-
-   renderer.render(sprite, renderTexture);  // Renders to center of RenderTexture</code></pre>
-   */
   module BaseRenderTexture = {
     /*
      A BaseRenderTexture is a special texture that allows any Pixi display object to be rendered to it.
@@ -3664,7 +3600,7 @@ module Impl (T: TYPES) => {
      */
     type t = T.baseRenderTexture;
     external create :
-      width::float => height::float => scaleMode::float => resolution::float => unit => t =
+      width::float? => height::float? => scaleMode::float? => resolution::float? => unit => t =
       "BaseRenderTexture" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      This will let the renderer know if the texture is valid. If it's not then it cannot be rendered.
@@ -3793,18 +3729,15 @@ module Impl (T: TYPES) => {
      */
     external setTextureCacheIds : t => array string => unit = "textureCacheIds" [@@bs.set];
   };
-  /*
-   A texture stores the information that represents an image. All textures have a base texture.
-   */
   module BaseTexture = {
     /*
      A texture stores the information that represents an image. All textures have a base texture.
      */
     type t = T.baseTexture;
     external create :
-      source::unit /* unknown js type: HTMLImageElement|HTMLCanvasElement */ =>
-      scaleMode::float =>
-      resolution::float =>
+      source::unit /* unknown js type: HTMLImageElement|HTMLCanvasElement */? =>
+      scaleMode::float? =>
+      resolution::float? =>
       unit =>
       t =
       "BaseTexture" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
@@ -3927,32 +3860,6 @@ module Impl (T: TYPES) => {
      */
     external setTextureCacheIds : t => array string => unit = "textureCacheIds" [@@bs.set];
   };
-  /*
-   A RenderTexture is a special texture that allows any Pixi display object to be rendered to it.
-
-   <p><strong>Hint</strong>: All DisplayObjects (i.e. Sprites) that render to a RenderTexture should be preloaded
-   otherwise black rectangles will be drawn instead.</p>
-   A RenderTexture takes a snapshot of any Display Object given to its render method. For example:
-
-   <pre class="prettyprint source lang-js"><code>let renderer = PIXI.autoDetectRenderer(1024, 1024, { view: canvas, ratio: 1 });
-   let renderTexture = PIXI.RenderTexture.create(800, 600);
-   let sprite = PIXI.Sprite.fromImage(&quot;spinObj_01.png&quot;);
-
-   sprite.position.x = 800/2;
-   sprite.position.y = 600/2;
-   sprite.anchor.x = 0.5;
-   sprite.anchor.y = 0.5;
-
-   renderer.render(sprite, renderTexture);</code></pre>The Sprite in this case will be rendered using its local transform. To render this sprite at 0,0
-   you can clear the transform
-
-   <pre class="prettyprint source lang-js"><code>
-   sprite.setTransform()
-
-   let renderTexture = new PIXI.RenderTexture.create(100, 100);
-
-   renderer.render(sprite, renderTexture);  // Renders to center of RenderTexture</code></pre>
-   */
   module RenderTexture = {
     /*
      A RenderTexture is a special texture that allows any Pixi display object to be rendered to it.
@@ -3981,7 +3888,7 @@ module Impl (T: TYPES) => {
      renderer.render(sprite, renderTexture);  // Renders to center of RenderTexture</code></pre>
      */
     type t = T.renderTexture;
-    external create : baseRenderTexture::T.baseRenderTexture => frame::T.rectangle => unit => t =
+    external create : baseRenderTexture::T.baseRenderTexture => frame::T.rectangle? => unit => t =
       "RenderTexture" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      This will let the renderer know if the texture is valid. If it's not then it cannot be rendered.
@@ -4094,10 +4001,6 @@ module Impl (T: TYPES) => {
      */
     external setHeight : t => float => unit = "height" [@@bs.set];
   };
-  /*
-   Utility class for maintaining reference to a collection
-   of Textures on a single Spritesheet.
-   */
   module Spritesheet = {
     /*
      Utility class for maintaining reference to a collection
@@ -4107,7 +4010,7 @@ module Impl (T: TYPES) => {
     external create :
       baseTexture::T.baseTexture =>
       data::unit /* unknown js type: Object */ =>
-      resolutionFilename::string =>
+      resolutionFilename::string? =>
       unit =>
       t =
       "Spritesheet" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
@@ -4144,22 +4047,6 @@ module Impl (T: TYPES) => {
      */
     external setResolution : t => float => unit = "resolution" [@@bs.set];
   };
-  /*
-   A texture stores the information that represents an image or part of an image. It cannot be added
-   to the display list directly. Instead use it as the texture for a Sprite. If no frame is provided
-   then the whole image is used.
-
-   You can directly create a texture from an image and then reuse it multiple times like this :
-
-   <pre class="prettyprint source lang-js"><code>let texture = PIXI.Texture.fromImage('assets/image.png');
-   let sprite1 = new PIXI.Sprite(texture);
-   let sprite2 = new PIXI.Sprite(texture);</code></pre>Textures made from SVGs, loaded or not, cannot be used before the file finishes processing.
-   You can check for this by checking the sprite's _textureID property.
-
-   <pre class="prettyprint source lang-js"><code>var texture = PIXI.Texture.fromImage('assets/image.svg');
-   var sprite1 = new PIXI.Sprite(texture);
-   //sprite1._textureID should not be undefined if the texture has finished processing the SVG file</code></pre>You can use a ticker or rAF to ensure your sprites load the finished textures after processing. See issue #3068.
-   */
   module Texture = {
     /*
      A texture stores the information that represents an image or part of an image. It cannot be added
@@ -4180,10 +4067,10 @@ module Impl (T: TYPES) => {
     type t = T.texture;
     external create :
       baseTexture::T.baseTexture =>
-      frame::T.rectangle =>
-      orig::T.rectangle =>
-      trim::T.rectangle =>
-      rotate::float =>
+      frame::T.rectangle? =>
+      orig::T.rectangle? =>
+      trim::T.rectangle? =>
+      rotate::float? =>
       unit =>
       t =
       "Texture" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
@@ -4307,24 +4194,6 @@ module Impl (T: TYPES) => {
      */
     external setHeight : t => float => unit = "height" [@@bs.set];
   };
-  /*
-   A texture of a [playing] Video.
-
-   Video base textures mimic Pixi BaseTexture.from.... method in their creation process.
-
-   This can be used in several ways, such as:
-
-   <pre class="prettyprint source lang-js"><code>let texture = PIXI.VideoBaseTexture.fromUrl('http://mydomain.com/video.mp4');
-
-   let texture = PIXI.VideoBaseTexture.fromUrl({ src: 'http://mydomain.com/video.mp4', mime: 'video/mp4' });
-
-   let texture = PIXI.VideoBaseTexture.fromUrls(['/video.webm', '/video.mp4']);
-
-   let texture = PIXI.VideoBaseTexture.fromUrls([
-       { src: '/video.webm', mime: 'video/webm' },
-       { src: '/video.mp4', mime: 'video/mp4' }
-   ]);</code></pre><p>See the <a href="http://www.goodboydigital.com/pixijs/examples/deus/">&quot;deus&quot; demo</a>.</p>
-   */
   module VideoBaseTexture = {
     /*
      A texture of a [playing] Video.
@@ -4346,7 +4215,7 @@ module Impl (T: TYPES) => {
      */
     type t = T.videoBaseTexture;
     external create :
-      source::unit /* unknown js type: HTMLVideoElement */ => scaleMode::float => unit => t =
+      source::unit /* unknown js type: HTMLVideoElement */ => scaleMode::float? => unit => t =
       "VideoBaseTexture" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
     /*
      When set to true will automatically play videos used by this texture once
@@ -4486,13 +4355,6 @@ module Impl (T: TYPES) => {
     external setTextureCacheIds : t => array string => unit = "textureCacheIds" [@@bs.set];
   };
   module Ticker = {
-    /*
-     A Ticker class that runs an update loop that other objects listen to.
-     This class is composed around listeners
-     meant for execution on the next requested animation frame.
-     Animation frames are requested only when necessary,
-     e.g. When the ticker is started and the emitter has listeners.
-     */
     module Ticker = {
       /*
        A Ticker class that runs an update loop that other objects listen to.
@@ -4626,11 +4488,6 @@ module Impl (T: TYPES) => {
     };
   };
   module Extract = {
-    /*
-     The extract manager provides functionality to export content from the renderers.
-
-     An instance of this class is automatically created by default, and can be found at renderer.plugins.extract
-     */
     module CanvasExtract = {
       /*
        The extract manager provides functionality to export content from the renderers.
@@ -4641,11 +4498,6 @@ module Impl (T: TYPES) => {
       external create : renderer::T.canvasRenderer => unit => t =
         "CanvasExtract" [@@bs.new] [@@bs.scope "extract"] [@@bs.module ("pixi.js", "PIXI")];
     };
-    /*
-     The extract manager provides functionality to export content from the renderers.
-
-     An instance of this class is automatically created by default, and can be found at renderer.plugins.extract
-     */
     module WebGLExtract = {
       /*
        The extract manager provides functionality to export content from the renderers.
@@ -4658,20 +4510,6 @@ module Impl (T: TYPES) => {
     };
   };
   module Extras = {
-    /*
-     An AnimatedSprite is a simple way to display an animation depicted by a list of textures.
-
-     <pre class="prettyprint source lang-js"><code>let alienImages = [&quot;image_sequence_01.png&quot;,&quot;image_sequence_02.png&quot;,&quot;image_sequence_03.png&quot;,&quot;image_sequence_04.png&quot;];
-     let textureArray = [];
-
-     for (let i=0; i &lt; 4; i++)
-     {
-          let texture = PIXI.Texture.fromImage(alienImages[i]);
-          textureArray.push(texture);
-     };
-
-     let mc = new PIXI.AnimatedSprite(textureArray);</code></pre>
-     */
     module AnimatedSprite = {
       /*
        An AnimatedSprite is a simple way to display an animation depicted by a list of textures.
@@ -4690,7 +4528,7 @@ module Impl (T: TYPES) => {
       type t = T.animatedSprite;
       external create :
         textures::unit /* unknown js type: Array.<PIXI.Texture>|Array.<FrameObject> */ =>
-        autoUpdate::Js.boolean =>
+        autoUpdate::Js.boolean? =>
         unit =>
         t =
         "AnimatedSprite" [@@bs.new] [@@bs.scope "extras"] [@@bs.module ("pixi.js", "PIXI")];
@@ -5101,16 +4939,6 @@ module Impl (T: TYPES) => {
        */
       external setCursor : t => string => unit = "cursor" [@@bs.set];
     };
-    /*
-     A BitmapText object will create a line or multiple lines of text using bitmap font. To
-     split a line you can use '\n', '\r' or '\r\n' in your string. You can generate the fnt files using:
-
-     A BitmapText can only be created when the font is loaded
-
-     <pre class="prettyprint source lang-js"><code>// in this case the font is in a file called 'desyrel.fnt'
-     let bitmapText = new PIXI.extras.BitmapText(&quot;text using a fancy font!&quot;, {font: &quot;35px Desyrel&quot;, align: &quot;right&quot;});</code></pre>http://www.angelcode.com/products/bmfont/ for windows or
-     http://www.bmglyph.com/ for mac.
-     */
     module BitmapText = {
       /*
        A BitmapText object will create a line or multiple lines of text using bitmap font. To
@@ -5123,7 +4951,20 @@ module Impl (T: TYPES) => {
        http://www.bmglyph.com/ for mac.
        */
       type t = T.bitmapText;
-      external create : text::string => style::unit /* unknown js type: object */ => unit => t =
+      type createStyle;
+      /*
+       The style parameters
+       */
+      external mkCreateStyle :
+        font::unit /* unknown js type: string|object */ =>
+        font::string? =>
+        font::float? =>
+        align::string? =>
+        tint::float? =>
+        unit =>
+        createStyle =
+        "" [@@bs.obj];
+      external create : text::string => style::createStyle => unit => t =
         "BitmapText" [@@bs.new] [@@bs.scope "extras"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        The dirty state of this object.
@@ -5493,15 +5334,12 @@ module Impl (T: TYPES) => {
        */
       external setCursor : t => string => unit = "cursor" [@@bs.set];
     };
-    /*
-     class controls uv transform and frame clamp for texture
-     */
     module TextureTransform = {
       /*
        class controls uv transform and frame clamp for texture
        */
       type t = T.textureTransform;
-      external create : texture::T.texture => clampMargin::float => unit => t =
+      external create : texture::T.texture => clampMargin::float? => unit => t =
         "TextureTransform" [@@bs.new] [@@bs.scope "extras"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        Changes frame clamping
@@ -5536,15 +5374,12 @@ module Impl (T: TYPES) => {
        */
       external setTexture : t => T.texture => unit = "texture" [@@bs.set];
     };
-    /*
-     A tiling sprite is a fast way of rendering a tiling image
-     */
     module TilingSprite = {
       /*
        A tiling sprite is a fast way of rendering a tiling image
        */
       type t = T.tilingSprite;
-      external create : texture::T.texture => width::float => height::float => unit => t =
+      external create : texture::T.texture => width::float? => height::float? => unit => t =
         "TilingSprite" [@@bs.new] [@@bs.scope "extras"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        Tile transform
@@ -5940,9 +5775,6 @@ module Impl (T: TYPES) => {
        */
       external setCursor : t => string => unit = "cursor" [@@bs.set];
     };
-    /*
-     WebGL renderer plugin for tiling sprites
-     */
     module TilingSpriteRenderer = {
       /*
        WebGL renderer plugin for tiling sprites
@@ -5961,10 +5793,6 @@ module Impl (T: TYPES) => {
     };
   };
   module Filters = {
-    /*
-     The BlurFilter applies a Gaussian blur to an object.
-     The strength of the blur can be set for x- and y-axis separately.
-     */
     module BlurFilter = {
       /*
        The BlurFilter applies a Gaussian blur to an object.
@@ -5972,7 +5800,7 @@ module Impl (T: TYPES) => {
        */
       type t = T.blurFilter;
       external create :
-        strength::float => quality::float => resolution::float => kernelSize::float => unit => t =
+        strength::float => quality::float => resolution::float => kernelSize::float? => unit => t =
         "BlurFilter" [@@bs.new] [@@bs.scope "filters"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        Sets the strength of both the blurX and blurY properties simultaneously
@@ -6072,16 +5900,13 @@ module Impl (T: TYPES) => {
        */
       external setAutoFit : t => Js.boolean => unit = "autoFit" [@@bs.set];
     };
-    /*
-     The BlurXFilter applies a horizontal Gaussian blur to an object.
-     */
     module BlurXFilter = {
       /*
        The BlurXFilter applies a horizontal Gaussian blur to an object.
        */
       type t = T.blurXFilter;
       external create :
-        strength::float => quality::float => resolution::float => kernelSize::float => unit => t =
+        strength::float => quality::float => resolution::float => kernelSize::float? => unit => t =
         "BlurXFilter" [@@bs.new] [@@bs.scope "filters"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        Sets the strength of both the blur.
@@ -6167,16 +5992,13 @@ module Impl (T: TYPES) => {
        */
       external setAutoFit : t => Js.boolean => unit = "autoFit" [@@bs.set];
     };
-    /*
-     The BlurYFilter applies a horizontal Gaussian blur to an object.
-     */
     module BlurYFilter = {
       /*
        The BlurYFilter applies a horizontal Gaussian blur to an object.
        */
       type t = T.blurYFilter;
       external create :
-        strength::float => quality::float => resolution::float => kernelSize::float => unit => t =
+        strength::float => quality::float => resolution::float => kernelSize::float? => unit => t =
         "BlurYFilter" [@@bs.new] [@@bs.scope "filters"] [@@bs.module ("pixi.js", "PIXI")];
       /*
        Sets the strength of both the blur.
@@ -6262,15 +6084,6 @@ module Impl (T: TYPES) => {
        */
       external setAutoFit : t => Js.boolean => unit = "autoFit" [@@bs.set];
     };
-    /*
-     The ColorMatrixFilter class lets you apply a 5x4 matrix transformation on the RGBA
-     color and alpha values of every pixel on your displayObject to produce a result
-     with a new set of RGBA color and alpha values. It's pretty powerful!
-
-     <pre class="prettyprint source lang-js"><code> let colorMatrix = new PIXI.ColorMatrixFilter();
-      container.filters = [colorMatrix];
-      colorMatrix.contrast(2);</code></pre>
-     */
     module ColorMatrixFilter = {
       /*
        The ColorMatrixFilter class lets you apply a 5x4 matrix transformation on the RGBA
@@ -6374,13 +6187,6 @@ module Impl (T: TYPES) => {
        */
       external setAutoFit : t => Js.boolean => unit = "autoFit" [@@bs.set];
     };
-    /*
-     The DisplacementFilter class uses the pixel values from the specified texture
-     (called the displacement map) to perform a displacement of an object. You can
-     use this filter to apply all manor of crazy warping effects. Currently the r
-     property of the texture is used to offset the x and the g property of the texture
-     is used to offset the y.
-     */
     module DisplacementFilter = {
       /*
        The DisplacementFilter class uses the pixel values from the specified texture
@@ -6466,11 +6272,6 @@ module Impl (T: TYPES) => {
        */
       external setAutoFit : t => Js.boolean => unit = "autoFit" [@@bs.set];
     };
-    /*
-     Basic FXAA implementation based on the code on geeks3d.com with the
-     modification that the texture2DLod stuff was removed since it's
-     unsupported by WebGL.
-     */
     module FXAAFilter = {
       /*
        Basic FXAA implementation based on the code on geeks3d.com with the
@@ -6546,9 +6347,6 @@ module Impl (T: TYPES) => {
        */
       external setAutoFit : t => Js.boolean => unit = "autoFit" [@@bs.set];
     };
-    /*
-     A Noise effect filter.
-     */
     module NoiseFilter = {
       /*
        A Noise effect filter.
@@ -6638,9 +6436,6 @@ module Impl (T: TYPES) => {
        */
       external setAutoFit : t => Js.boolean => unit = "autoFit" [@@bs.set];
     };
-    /*
-     Does nothing. Very handy.
-     */
     module VoidFilter = {
       /*
        Does nothing. Very handy.
@@ -6716,9 +6511,6 @@ module Impl (T: TYPES) => {
     };
   };
   module Interaction = {
-    /*
-     Holds all information related to an Interaction event
-     */
     module InteractionData = {
       /*
        Holds all information related to an Interaction event
@@ -6869,9 +6661,6 @@ module Impl (T: TYPES) => {
        */
       external pointerId : t => float = "" [@@bs.get];
     };
-    /*
-     Event class that mimics native DOM events.
-     */
     module InteractionEvent = {
       /*
        Event class that mimics native DOM events.
@@ -6922,13 +6711,6 @@ module Impl (T: TYPES) => {
        */
       external setData : t => T.interactionData => unit = "data" [@@bs.set];
     };
-    /*
-     The interaction manager deals with mouse, touch and pointer events. Any DisplayObject can be interactive
-     if its interactive parameter is set to true
-     This manager also supports multitouch.
-
-     An instance of this class is automatically created by default, and can be found at renderer.plugins.interaction
-     */
     module InteractionManager = {
       /*
        The interaction manager deals with mouse, touch and pointer events. Any DisplayObject can be interactive
@@ -6938,9 +6720,16 @@ module Impl (T: TYPES) => {
        An instance of this class is automatically created by default, and can be found at renderer.plugins.interaction
        */
       type t = T.interactionManager;
+      type createOptions;
+      /*
+       The options for the manager.
+       */
+      external mkCreateOptions :
+        autoPreventDefault::Js.boolean? => interactionFrequency::float? => unit => createOptions =
+        "" [@@bs.obj];
       external create :
         renderer::unit /* unknown js type: PIXI.CanvasRenderer|PIXI.WebGLRenderer */ =>
-        options::unit /* unknown js type: object */ =>
+        options::createOptions? =>
         unit =>
         t =
         "InteractionManager"
@@ -7066,48 +6855,6 @@ module Impl (T: TYPES) => {
       external create : unit => t =
         "Resource" [@@bs.new] [@@bs.scope "loaders"] [@@bs.module ("pixi.js", "PIXI")];
     };
-    /*
-     The new loader, extends Resource Loader by Chad Engler: https://github.com/englercj/resource-loader
-
-     <pre class="prettyprint source lang-js"><code>const loader = PIXI.loader; // pixi exposes a premade instance for you to use.
-     //or
-     const loader = new PIXI.loaders.Loader(); // you can also create your own if you want
-
-     const sprites = {};
-
-     // Chainable `add` to enqueue a resource
-     loader.add('bunny', 'data/bunny.png')
-           .add('spaceship', 'assets/spritesheet.json');
-     loader.add('scoreFont', 'assets/score.fnt');
-
-     // Chainable `pre` to add a middleware that runs for each resource, *before* loading that resource.
-     // This is useful to implement custom caching modules (using filesystem, indexeddb, memory, etc).
-     loader.pre(cachingMiddleware);
-
-     // Chainable `use` to add a middleware that runs for each resource, *after* loading that resource.
-     // This is useful to implement custom parsing modules (like spritesheet parsers, spine parser, etc).
-     loader.use(parsingMiddleware);
-
-     // The `load` method loads the queue of resources, and calls the passed in callback called once all
-     // resources have loaded.
-     loader.load((loader, resources) => {
-         // resources is an object where the key is the name of the resource loaded and the value is the resource object.
-         // They have a couple default properties:
-         // - `url`: The URL that the resource was loaded from
-         // - `error`: The error that happened when trying to load (if any)
-         // - `data`: The raw data that was loaded
-         // also may contain other properties based on the middleware that runs.
-         sprites.bunny = new PIXI.TilingSprite(resources.bunny.texture);
-         sprites.spaceship = new PIXI.TilingSprite(resources.spaceship.texture);
-         sprites.scoreFont = new PIXI.TilingSprite(resources.scoreFont.texture);
-     });
-
-     // throughout the process multiple signals can be dispatched.
-     loader.onProgress.add(() => {}); // called once per loaded/errored file
-     loader.onError.add(() => {}); // called once per errored file
-     loader.onLoad.add(() => {}); // called once per loaded file
-     loader.onComplete.add(() => {}); // called once when the queued resources all load.</code></pre>
-     */
     module Loader = {
       /*
        The new loader, extends Resource Loader by Chad Engler: https://github.com/englercj/resource-loader
@@ -7152,14 +6899,11 @@ module Impl (T: TYPES) => {
        loader.onComplete.add(() => {}); // called once when the queued resources all load.</code></pre>
        */
       type t = T.loader;
-      external create : baseUrl::string => concurrency::float => unit => t =
+      external create : baseUrl::string? => concurrency::float? => unit => t =
         "Loader" [@@bs.new] [@@bs.scope "loaders"] [@@bs.module ("pixi.js", "PIXI")];
     };
   };
   module Mesh = {
-    /*
-     Base mesh class
-     */
     module Mesh = {
       /*
        Base mesh class
@@ -7167,10 +6911,10 @@ module Impl (T: TYPES) => {
       type t = T.mesh;
       external create :
         texture::T.texture =>
-        vertices::unit /* unknown js type: Float32Array */ =>
-        uvs::unit /* unknown js type: Float32Array */ =>
-        indices::unit /* unknown js type: Uint16Array */ =>
-        drawMode::float =>
+        vertices::unit /* unknown js type: Float32Array */? =>
+        uvs::unit /* unknown js type: Float32Array */? =>
+        indices::unit /* unknown js type: Uint16Array */? =>
+        drawMode::float? =>
         unit =>
         t =
         "Mesh" [@@bs.new] [@@bs.scope "mesh"] [@@bs.module ("pixi.js", "PIXI")];
@@ -7585,28 +7329,6 @@ module Impl (T: TYPES) => {
        */
       external setCursor : t => string => unit = "cursor" [@@bs.set];
     };
-    /*
-     The NineSlicePlane allows you to stretch a texture using 9-slice scaling. The corners will remain unscaled (useful
-     for buttons with rounded corners for example) and the other areas will be scaled horizontally and or vertically
-
-     <pre class="prettyprint source lang-js"><code>let Plane9 = new PIXI.NineSlicePlane(PIXI.Texture.fromImage('BoxWithRoundedCorners.png'), 15, 15, 15, 15);</code></pre><pre>
-          A                          B
-        +---+----------------------+---+
-      C | 1 |          2           | 3 |
-        +---+----------------------+---+
-        |   |                      |   |
-        | 4 |          5           | 6 |
-        |   |                      |   |
-        +---+----------------------+---+
-      D | 7 |          8           | 9 |
-        +---+----------------------+---+
-      When changing this objects width and/or height:
-         areas 1 3 7 and 9 will remain unscaled.
-         areas 2 and 8 will be stretched horizontally
-         areas 4 and 6 will be stretched vertically
-         area 5 will be stretched both horizontally and vertically
-     </pre>
-     */
     module NineSlicePlane = {
       /*
        The NineSlicePlane allows you to stretch a texture using 9-slice scaling. The corners will remain unscaled (useful
@@ -7633,10 +7355,10 @@ module Impl (T: TYPES) => {
       type t = T.nineSlicePlane;
       external create :
         texture::T.texture =>
-        leftWidth::unit /* unknown js type: int */ =>
-        topHeight::unit /* unknown js type: int */ =>
-        rightWidth::unit /* unknown js type: int */ =>
-        bottomHeight::unit /* unknown js type: int */ =>
+        leftWidth::unit /* unknown js type: int */? =>
+        topHeight::unit /* unknown js type: int */? =>
+        rightWidth::unit /* unknown js type: int */? =>
+        bottomHeight::unit /* unknown js type: int */? =>
         unit =>
         t =
         "NineSlicePlane" [@@bs.new] [@@bs.scope "mesh"] [@@bs.module ("pixi.js", "PIXI")];
@@ -8090,14 +7812,6 @@ module Impl (T: TYPES) => {
        */
       external setCursor : t => string => unit = "cursor" [@@bs.set];
     };
-    /*
-     The Plane allows you to draw a texture across several points and them manipulate these points
-
-     <pre class="prettyprint source lang-js"><code>for (let i = 0; i &lt; 20; i++) {
-         points.push(new PIXI.Point(i * 50, 0));
-     };
-     let Plane = new PIXI.Plane(PIXI.Texture.fromImage(&quot;snake.png&quot;), points);</code></pre>
-     */
     module Plane = {
       /*
        The Plane allows you to draw a texture across several points and them manipulate these points
@@ -8512,14 +8226,6 @@ module Impl (T: TYPES) => {
        */
       external setCursor : t => string => unit = "cursor" [@@bs.set];
     };
-    /*
-     The rope allows you to draw a texture across several points and them manipulate these points
-
-     <pre class="prettyprint source lang-js"><code>for (let i = 0; i &lt; 20; i++) {
-         points.push(new PIXI.Point(i * 50, 0));
-     };
-     let rope = new PIXI.Rope(PIXI.Texture.fromImage(&quot;snake.png&quot;), points);</code></pre>
-     */
     module Rope = {
       /*
        The rope allows you to draw a texture across several points and them manipulate these points
@@ -8969,9 +8675,6 @@ module Impl (T: TYPES) => {
       external setCursor : t => string => unit = "cursor" [@@bs.set];
     };
   };
-  /*
-   WebGL renderer plugin for tiling sprites
-   */
   module MeshRenderer = {
     /*
      WebGL renderer plugin for tiling sprites
@@ -8989,22 +8692,6 @@ module Impl (T: TYPES) => {
     external setRenderer : t => T.webGLRenderer => unit = "renderer" [@@bs.set];
   };
   module Particles = {
-    /*
-     The ParticleContainer class is a really fast version of the Container built solely for speed,
-     so use when you need a lot of sprites or particles. The tradeoff of the ParticleContainer is that advanced
-     functionality will not work. ParticleContainer implements only the basic object transform (position, scale, rotation).
-     Any other functionality like tinting, masking, etc will not work on sprites in this batch.
-
-     It's extremely easy to use :
-
-     <pre class="prettyprint source lang-js"><code>let container = new ParticleContainer();
-
-     for (let i = 0; i &lt; 100; ++i)
-     {
-         let sprite = new PIXI.Sprite.fromImage(&quot;myImage.png&quot;);
-         container.addChild(sprite);
-     }</code></pre>And here you have a hundred sprites that will be renderer at the speed of light.
-     */
     module ParticleContainer = {
       /*
        The ParticleContainer class is a really fast version of the Container built solely for speed,
@@ -9023,12 +8710,21 @@ module Impl (T: TYPES) => {
        }</code></pre>And here you have a hundred sprites that will be renderer at the speed of light.
        */
       type t = T.particleContainer;
-      external create :
-        maxSize::float =>
-        properties::unit /* unknown js type: object */ =>
-        batchSize::float =>
+      type createProperties;
+      /*
+       The properties of children that should be uploaded to the gpu and applied.
+       */
+      external mkCreateProperties :
+        scale::Js.boolean? =>
+        position::Js.boolean? =>
+        rotation::Js.boolean? =>
+        uvs::Js.boolean? =>
+        alpha::Js.boolean? =>
         unit =>
-        t =
+        createProperties =
+        "" [@@bs.obj];
+      external create :
+        maxSize::float? => properties::createProperties? => batchSize::float? => unit => t =
         "ParticleContainer" [@@bs.new] [@@bs.scope "particles"] [@@bs.module ("pixi.js", "PIXI")];
       external interactiveChildren : t => Js.boolean = "" [@@bs.get];
       external setInteractiveChildren : t => Js.boolean => unit = "interactiveChildren" [@@bs.set];
@@ -9356,11 +9052,6 @@ module Impl (T: TYPES) => {
       "ParticleShader" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
   };
   module Prepare = {
-    /*
-     The prepare manager provides functionality to upload content to the GPU. BasePrepare handles
-     basic queuing functionality and is extended by {@link PIXI.prepare.WebGLPrepare} and {@link PIXI.prepare.CanvasPrepare}
-     to provide preparation capabilities specific to their respective renderers.
-     */
     module BasePrepare = {
       /*
        The prepare manager provides functionality to upload content to the GPU. BasePrepare handles
@@ -9405,14 +9096,6 @@ module Impl (T: TYPES) => {
         t => unit /* unknown js type: PIXI.prepare.CanvasPrepare|PIXI.WebGLRenderer */ => unit =
         "uploadHookHelper" [@@bs.set];
     };
-    /*
-     The prepare manager provides functionality to upload content to the GPU
-     This cannot be done directly for Canvas like in WebGL, but the effect can be achieved by drawing
-     textures to an offline canvas.
-     This draw call will force the texture to be moved onto the GPU.
-
-     An instance of this class is automatically created by default, and can be found at renderer.plugins.prepare
-     */
     module CanvasPrepare = {
       /*
        The prepare manager provides functionality to upload content to the GPU
@@ -9426,10 +9109,6 @@ module Impl (T: TYPES) => {
       external create : renderer::T.canvasRenderer => unit => t =
         "CanvasPrepare" [@@bs.new] [@@bs.scope "prepare"] [@@bs.module ("pixi.js", "PIXI")];
     };
-    /*
-     CountLimiter limits the number of items handled by a {@link PIXI.prepare.BasePrepare} to a specified
-     number of items per frame.
-     */
     module CountLimiter = {
       /*
        CountLimiter limits the number of items handled by a {@link PIXI.prepare.BasePrepare} to a specified
@@ -9439,11 +9118,6 @@ module Impl (T: TYPES) => {
       external create : maxItemsPerFrame::float => unit => t =
         "CountLimiter" [@@bs.new] [@@bs.scope "prepare"] [@@bs.module ("pixi.js", "PIXI")];
     };
-    /*
-     The prepare manager provides functionality to upload content to the GPU.
-
-     An instance of this class is automatically created by default, and can be found at renderer.plugins.prepare
-     */
     module WebGLPrepare = {
       /*
        The prepare manager provides functionality to upload content to the GPU.
@@ -9455,10 +9129,6 @@ module Impl (T: TYPES) => {
         "WebGLPrepare" [@@bs.new] [@@bs.scope "prepare"] [@@bs.module ("pixi.js", "PIXI")];
     };
   };
-  /*
-   TimeLimiter limits the number of items handled by a {@link PIXI.BasePrepare} to a specified
-   number of milliseconds per frame.
-   */
   module TimeLimiter = {
     /*
      TimeLimiter limits the number of items handled by a {@link PIXI.BasePrepare} to a specified

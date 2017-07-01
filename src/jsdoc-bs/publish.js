@@ -1,4 +1,14 @@
+"use strict";
 var _ = require("lodash");
+
+class Module {
+  get type() {
+    return "module";
+  }
+  constructor() {
+    this.items = {};
+  }
+}
 
 var ppJson = function(x) {
   console.error(JSON.stringify(x, null, 2));
@@ -33,17 +43,13 @@ var modulePathFromLongname = function(longname) {
   return longname.split(".").map(titleCase);
 };
 
-var mkModule = function() {
-  return { type: "module", items: {} };
-};
-
 var ensureModuleExists = function(modules, modulePath) {
   var m = modules;
   for (var i = 0; i < modulePath.length; i++) {
-    if (!m["items"][modulePath[i]]) {
-      m["items"][modulePath[i]] = mkModule();
+    if (!m.items[modulePath[i]]) {
+      m.items[modulePath[i]] = new Module();
     }
-    m = m["items"][modulePath[i]];
+    m = m.items[modulePath[i]];
   }
   return m;
 };
@@ -51,10 +57,10 @@ var ensureModuleExists = function(modules, modulePath) {
 var getItem = function(modules, path) {
   var m = modules;
   for (var i = 0; i < path.length; i++) {
-    if (!(m["items"] && m["items"][path[i]])) {
+    if (!(m.items && m.items[path[i]])) {
       return null;
     }
-    m = m["items"][path[i]];
+    m = m.items[path[i]];
   }
   return m;
 };
@@ -92,6 +98,8 @@ var jsToBsType = (function() {
       _.isEqual(jsTypeNames, ["HTMLImageElement" | "HTMLCanvasElement"])
     ) {
       return `Dom.element`;
+    } else if (_.isEqual(jsTypeNames, ["string", "Array.<string>"])) {
+      return jsToBsType(modules, ["Array.<string>"]);
     }
     return `unit /* unknown js type: ${jsTypeNames.join("|")} */`;
   };
@@ -134,10 +142,18 @@ ${formatDescription(item.description)}
 */
 `
     : "";
-  if (item["type"] === "type") {
+  if (item.type === "classtype") {
     return `${descComment} type ${name} = T.${camelCase(
       path[path.length - 2]
     )};`;
+  } else if (item.type === "opaquetype") {
+    return `${descComment} type ${name};`;
+  } else if (item.type === "makeobj") {
+    var paramTypes = item.params.map(p => {
+      var optional = p.optional ? "?" : "";
+      return `${p.name}::${jsToBsType(modules, p.type.names)}${optional} => `;
+    });
+    return `${descComment} external ${name} : ${paramTypes.join('')} unit => ${item.returnType} = "" [@@bs.obj];`;
   } else if (item.type === "getter") {
     var getterName = unkeyword(camelCase(name));
     var r = `${descComment} external ${getterName} : t => ${item.bsType} = "${getterName ===
@@ -154,8 +170,9 @@ ${descComment} external set${titleCase(
     return r;
   } else if (item.type === "constructor") {
     var paramTypes = item.params.map(p => {
-      // TODO: support optionals
-      return `${p.name}::${jsToBsType(modules, p.type.names)}`;
+      var typeString = p.bsType || jsToBsType(modules, p.type.names);
+      var optional = p.optional ? "?" : "";
+      return `${p.name}::${typeString}${optional}`;
     });
     var scopeAttr = _.isEqual(item.scope, [])
       ? ""
@@ -238,7 +255,7 @@ var addConstructor = (module, datum) => {
   var params = [];
   _.forEach(datum.params, p => {
     if (!/\./.test(p.name)) {
-      if (p.type.names.length === 1 && p.type.names[0] === "object") {
+      if (_.isEqual(p.type.names, ["object"])) {
         params.push(_.merge({}, p, { params: [] }));
       } else {
         params.push(p);
@@ -259,12 +276,25 @@ var addConstructor = (module, datum) => {
     }
   });
 
-  // console.error(`constructor ${datum.name} has params:`);
-  // ppJson(params);
+  console.error(`constructor ${datum.name} has params:`);
+  ppJson(params);
 
   if (module.items["create"]) {
     console.error(`constructor for class ${datum.name} duplicated`);
   } else {
+    _.forEach(params, p => {
+      if (_.isEqual(p.type.names, ["object"]) && _.isArray(p.params) && p.params.length >= 1) {
+        var optionsTypeName = `create${titleCase(p.name)}`;
+        module.items[optionsTypeName] = {type: "opaquetype"};
+        module.items[`mk${titleCase(optionsTypeName)}`] = {
+          type: "makeobj",
+          params: p.params,
+          returnType: optionsTypeName,
+          description: p.description
+        };
+        p.bsType = optionsTypeName;
+      }
+    });
     module.items["create"] = {
       type: "constructor",
       name: datum.name,
@@ -276,7 +306,7 @@ var addConstructor = (module, datum) => {
 
 exports.publish = function(taffyData, opts) {
   var data = taffyData;
-  var modules = mkModule();
+  var modules = new Module();
   var classes = [];
 
   data({ undocumented: true }).remove();
@@ -302,11 +332,11 @@ exports.publish = function(taffyData, opts) {
         modules,
         modulePathFromLongname(datum.longname)
       );
-      m.description = datum.classdesc;
+      // m.description = datum.classdesc;
       m.private = isPrivateClass;
       m.name = datum.name;
       m.items["t"] = {
-        type: "type",
+        type: "classtype",
         description: datum.classdesc,
         name: datum.name
       };

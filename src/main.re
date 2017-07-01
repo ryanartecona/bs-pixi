@@ -32,7 +32,10 @@ let _ = {
   open Pixi;
   let app =
     Application.create
-      opts::(Application.mkOpts width::400 backgroundColor::0x335500 ()) ();
+      opts::(
+        Application.mkOpts width::400 height::400 backgroundColor::0x335500 ()
+      )
+      ();
   /* let me debug in dev tools */
   let () = [%bs.raw "window.app = app"];
   document |> Document.body |> Element.appendChild (app |> Application.view);
@@ -46,8 +49,28 @@ let _ = {
 
 let _ = {
   open PixiAuto;
+  /* test creating some shit */
   let transform = Transform.create ();
   let countLimiter = Prepare.CountLimiter.create 10. ();
-  let baseTexture = BaseRenderTexture.create 10. 10. 1. 2. ();
+  let baseTexture =
+    BaseRenderTexture.create
+      width::10. height::10. scaleMode::1. resolution::2. ();
+  /* make an app */
+  let app =
+    Application.(
+      create
+        options::(
+          mkCreateOptions
+            width::600.
+            height::300.
+            backgroundColor::(float_of_int 0x003355)
+            ()
+        )
+        ()
+    );
+  /* expose window.appAuto for debugging */
+  let _ = [%bs.raw "function (app) { window.appAuto = app; }"] app;
+  /* add app's canvas to the document */
+  document |> Document.body |> Element.appendChild (app |> Application.view);
   ()
 };
