@@ -74,7 +74,10 @@ var jsToBsType = (function() {
     HTMLCanvasElement: "Dom.element",
     // CanvasRenderingContext2d: "Bs_webapi.Canvas.Canvas2d.t",
     WebGLRenderingContext: "ReasonJs.Gl.glT",
-    WebGLBuffer: "ReasonJs.Gl.bufferT"
+    WebGLBuffer: "ReasonJs.Gl.bufferT",
+    Float32Array: "Js_typed_array.Float32Array.t",
+    Uint8Array: "Js_typed_array.Uint8Array.t",
+    Uint16Array: "Js_typed_array.Uint16Array.t"
   };
   var regexpArrayOf = /^Array\.<(.*)>$/;
   return function(modules, jsTypeNames) {
@@ -153,7 +156,9 @@ ${formatDescription(item.description)}
       var optional = p.optional ? "?" : "";
       return `${p.name}::${jsToBsType(modules, p.type.names)}${optional} => `;
     });
-    return `${descComment} external ${name} : ${paramTypes.join('')} unit => ${item.returnType} = "" [@@bs.obj];`;
+    return `${descComment} external ${name} : ${paramTypes.join(
+      ""
+    )} unit => ${item.returnType} = "" [@@bs.obj];`;
   } else if (item.type === "getter") {
     var getterName = unkeyword(camelCase(name));
     var r = `${descComment} external ${getterName} : t => ${item.bsType} = "${getterName ===
@@ -182,6 +187,18 @@ ${descComment} external set${titleCase(
       .join(
         ""
       )} unit => t = "${item.name}" [@@bs.new] ${scopeAttr} [@@bs.module ("pixi.js", "PIXI")];`;
+  } else if (item.type === "method") {
+    var paramTypes = item.params.map(p => {
+      var typeString = p.bsType || jsToBsType(modules, p.type.names);
+      var optional = p.optional ? "?" : "";
+      return `${p.name}::${typeString}${optional} => `;
+    });
+    var returnType = item.returns && item.returns.length === 1
+      ? jsToBsType(modules, item.returns[0].type.names)
+      : "unit";
+    return `${descComment} external ${name} : ${paramTypes.join(
+      ""
+    )} ${returnType} = "" [@@bs.send.pipe : t];`;
   } else if (item.type === "module") {
     if (item.private) {
       return "";
@@ -251,50 +268,64 @@ var ensureClassExists = (classes, c) => {
   return c;
 };
 
-var addConstructor = (module, datum) => {
-  var params = [];
-  _.forEach(datum.params, p => {
+var nestOptionsParams = params => {
+  var nestedParams = [];
+
+  _.forEach(params, p => {
     if (!/\./.test(p.name)) {
-      if (_.isEqual(p.type.names, ["object"])) {
-        params.push(_.merge({}, p, { params: [] }));
-      } else {
-        params.push(p);
-      }
+      nestedParams.push(_.clone(p));
     }
   });
-  _.forEach(datum.params, p => {
+
+  _.forEach(params, p => {
     if (/\./.test(p.name)) {
       var parts = p.name.split(".", 2);
       var parentParamName = parts[0];
       var childParamName = parts[1];
-      var parentParam = _.find(params, other => {
+      var parentParam = _.find(nestedParams, other => {
         return other.name === parentParamName;
       });
       if (parentParam) {
+        parentParam.params = parentParam.params || [];
         parentParam.params.push(_.merge({}, p, { name: childParamName }));
       }
     }
   });
 
-  console.error(`constructor ${datum.name} has params:`);
-  ppJson(params);
+  return nestedParams;
+};
+
+var liftNestedParamsToModule = (params, module, parentName) => {
+  _.forEach(params, p => {
+    if (
+      _.isEqual(p.type.names, ["object"]) &&
+      _.isArray(p.params) &&
+      p.params.length >= 1
+    ) {
+      var optionsTypeName = `${parentName}${titleCase(p.name)}`;
+      module.items[optionsTypeName] = { type: "opaquetype" };
+      module.items[`mk${titleCase(optionsTypeName)}`] = {
+        type: "makeobj",
+        params: p.params,
+        returnType: optionsTypeName,
+        description: p.description
+      };
+      p.bsType = optionsTypeName;
+    }
+  });
+};
+
+var addConstructor = (module, datum) => {
+  var params = nestOptionsParams(datum.params);
+
+  // console.error(`constructor ${datum.name} has params:`);
+  // ppJson(params);
 
   if (module.items["create"]) {
     console.error(`constructor for class ${datum.name} duplicated`);
   } else {
-    _.forEach(params, p => {
-      if (_.isEqual(p.type.names, ["object"]) && _.isArray(p.params) && p.params.length >= 1) {
-        var optionsTypeName = `create${titleCase(p.name)}`;
-        module.items[optionsTypeName] = {type: "opaquetype"};
-        module.items[`mk${titleCase(optionsTypeName)}`] = {
-          type: "makeobj",
-          params: p.params,
-          returnType: optionsTypeName,
-          description: p.description
-        };
-        p.bsType = optionsTypeName;
-      }
-    });
+    liftNestedParamsToModule(params, module, "create");
+
     module.items["create"] = {
       type: "constructor",
       name: datum.name,
@@ -302,6 +333,18 @@ var addConstructor = (module, datum) => {
       params
     };
   }
+};
+
+var addMethod = (module, datum) => {
+  var params = nestOptionsParams(datum.params);
+  liftNestedParamsToModule(params, module, datum.name);
+  module.items[datum.name] = {
+    type: "method",
+    name: datum.name,
+    description: datum.description,
+    params,
+    returns: datum.returns
+  };
 };
 
 exports.publish = function(taffyData, opts) {
@@ -371,6 +414,25 @@ exports.publish = function(taffyData, opts) {
         bsType: jsToBsType(modules, datum.type.names),
         setter: !datum.readonly
       };
+    }
+  });
+
+  data().each(function(datum) {
+    if (/getRectangle$/.test(datum.longname)) {
+      ppJson(datum);
+    }
+    if (
+      datum.kind === "function" &&
+      datum.scope === "instance" &&
+      datum.access !== "private" &&
+      !datum.deprecated &&
+      datum.params
+    ) {
+      var m = ensureModuleExists(
+        modules,
+        modulePathFromLongname(datum.memberof)
+      );
+      addMethod(m, datum);
     }
   });
 

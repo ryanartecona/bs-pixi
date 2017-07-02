@@ -122,6 +122,18 @@ module Impl (T: TYPES) => {
        The renderer this accessibility manager works for.
        */
       external setRenderer : t => T.systemRenderer => unit = "renderer" [@@bs.set];
+      /*
+       Creates the touch hooks.
+       */
+      external createTouchHook : unit = "" [@@bs.send.pipe : t];
+      /*
+       TODO: docs.
+       */
+      external capHitArea : hitArea::T.rectangle => unit = "" [@@bs.send.pipe : t];
+      /*
+       Destroys the accessibility manager
+       */
+      external destroy : unit = "" [@@bs.send.pipe : t];
     };
   };
   module Application = {
@@ -207,6 +219,23 @@ module Impl (T: TYPES) => {
      Loader instance to help with asset loading.
      */
     external setLoader : t => T.loader => unit = "loader" [@@bs.set];
+    /*
+     Render the current stage.
+     */
+    external render : unit = "" [@@bs.send.pipe : t];
+    /*
+     Convenience method for stopping the render.
+     */
+    external stop : unit = "" [@@bs.send.pipe : t];
+    /*
+     Convenience method for starting the render.
+     */
+    external start : unit = "" [@@bs.send.pipe : t];
+    /*
+     Destroy and don't use after this.
+     */
+    external destroy : removeView::unit /* unknown js type: Boolean */? => unit =
+      "" [@@bs.send.pipe : t];
   };
   module Shader = {
     /*
@@ -234,6 +263,56 @@ module Impl (T: TYPES) => {
     external setMaxX : t => float => unit = "maxX" [@@bs.set];
     external maxY : t => float = "" [@@bs.get];
     external setMaxY : t => float => unit = "maxY" [@@bs.set];
+    /*
+     Checks if bounds are empty.
+     */
+    external isEmpty : Js.boolean = "" [@@bs.send.pipe : t];
+    /*
+     Clears the bounds and resets.
+     */
+    external clear : unit = "" [@@bs.send.pipe : t];
+    /*
+     Can return Rectangle.EMPTY constant, either construct new rectangle, either use your rectangle
+     It is not guaranteed that it will return tempRect
+     */
+    external getRectangle : rect::T.rectangle => T.rectangle = "" [@@bs.send.pipe : t];
+    /*
+     This function should be inlined when its possible.
+     */
+    external addPoint : point::T.point => unit = "" [@@bs.send.pipe : t];
+    /*
+     Adds a quad, not transformed
+     */
+    external addQuad : vertices::Js_typed_array.Float32Array.t => unit = "" [@@bs.send.pipe : t];
+    /*
+     Adds sprite frame, transformed.
+     */
+    external addFrame :
+      transform::T.transformBase => x0::float => y0::float => x1::float => y1::float => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Add an array of vertices
+     */
+    external addVertices :
+      transform::T.transformBase =>
+      vertices::Js_typed_array.Float32Array.t =>
+      beginOffset::float =>
+      endOffset::float =>
+      unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Adds other Bounds
+     */
+    external addBounds : bounds::T.bounds => unit = "" [@@bs.send.pipe : t];
+    /*
+     Adds other Bounds, masked with Bounds
+     */
+    external addBoundsMask : bounds::T.bounds => mask::T.bounds => unit = "" [@@bs.send.pipe : t];
+    /*
+     Adds other Bounds, masked with Rectangle
+     */
+    external addBoundsArea : bounds::T.bounds => area::T.rectangle => unit =
+      "" [@@bs.send.pipe : t];
   };
   module Container = {
     /*
@@ -528,6 +607,127 @@ module Impl (T: TYPES) => {
      is hovered over the displayObject.
      */
     external setCursor : t => string => unit = "cursor" [@@bs.set];
+    /*
+     Adds one or more children to the container.
+
+     <p>Multiple items can be added like so: <code>myContainer.addChild(thingOne, thingTwo, thingThree)</code></p>
+     */
+    external addChild : child::T.displayObject => T.displayObject = "" [@@bs.send.pipe : t];
+    /*
+     Adds a child to the container at a specified index. If the index is out of bounds an error will be thrown
+     */
+    external addChildAt : child::T.displayObject => index::float => T.displayObject =
+      "" [@@bs.send.pipe : t];
+    /*
+     Swaps the position of 2 Display Objects within this container.
+     */
+    external swapChildren : child::T.displayObject => child2::T.displayObject => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Returns the index position of a child DisplayObject instance
+     */
+    external getChildIndex : child::T.displayObject => float = "" [@@bs.send.pipe : t];
+    /*
+     Changes the position of an existing child in the display object container
+     */
+    external setChildIndex : child::T.displayObject => index::float => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Returns the child at the specified index
+     */
+    external getChildAt : index::float => T.displayObject = "" [@@bs.send.pipe : t];
+    /*
+     Removes one or more children from the container.
+     */
+    external removeChild : child::T.displayObject => T.displayObject = "" [@@bs.send.pipe : t];
+    /*
+     Removes a child from the specified index position.
+     */
+    external removeChildAt : index::float => T.displayObject = "" [@@bs.send.pipe : t];
+    /*
+     Removes all children from this container that are within the begin and end indexes.
+     */
+    external removeChildren : beginIndex::float? => endIndex::float? => array T.displayObject =
+      "" [@@bs.send.pipe : t];
+    /*
+     Updates the transform on all children of this container for rendering
+     */
+    external updateTransform : unit = "" [@@bs.send.pipe : t];
+    /*
+     Recalculates the bounds of the container.
+     */
+    external calculateBounds : unit = "" [@@bs.send.pipe : t];
+    /*
+     Recalculates the bounds of the object. Override this to
+     calculate the bounds of the specific object (not including children).
+     */
+    external _calculateBounds : unit = "" [@@bs.send.pipe : t];
+    /*
+     Renders the object using the WebGL renderer
+     */
+    external renderWebGL : renderer::T.webGLRenderer => unit = "" [@@bs.send.pipe : t];
+    /*
+     Renders the object using the Canvas renderer
+     */
+    external renderCanvas : renderer::T.canvasRenderer => unit = "" [@@bs.send.pipe : t];
+    /*
+     <p>Removes all internal references and listeners as well as removes children from the display list.
+     Do not use a Container after calling <code>destroy</code>.</p>
+     */
+    external destroy : options::unit /* unknown js type: object|boolean */? => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Returns the display object in the container
+     */
+    external getChildByName : name::string => T.displayObject = "" [@@bs.send.pipe : t];
+    /*
+     recursively updates transform of all objects from the root to this one
+     internal function for toLocal()
+     */
+    external _recursivePostUpdateTransform : unit = "" [@@bs.send.pipe : t];
+    /*
+     Retrieves the bounds of the displayObject as a rectangle object.
+     */
+    external getBounds : skipUpdate::Js.boolean => rect::T.rectangle => T.rectangle =
+      "" [@@bs.send.pipe : t];
+    /*
+     Retrieves the local bounds of the displayObject as a rectangle object
+     */
+    external getLocalBounds : rect::T.rectangle? => T.rectangle = "" [@@bs.send.pipe : t];
+    /*
+     Calculates the global position of the display object
+     */
+    external toGlobal : position::T.point => point::T.point? => skipUpdate::Js.boolean? => T.point =
+      "" [@@bs.send.pipe : t];
+    /*
+     Calculates the local position of the display object relative to another point
+     */
+    external toLocal :
+      position::T.point =>
+      from::T.displayObject? =>
+      point::T.point? =>
+      skipUpdate::Js.boolean? =>
+      T.point =
+      "" [@@bs.send.pipe : t];
+    /*
+     Set the parent Container of this DisplayObject
+     */
+    external setParent : container::T.container => T.container = "" [@@bs.send.pipe : t];
+    /*
+     Convenience function to set the position, scale, skew and pivot at once.
+     */
+    external setTransform :
+      x::float? =>
+      y::float? =>
+      scaleX::float? =>
+      scaleY::float? =>
+      rotation::float? =>
+      skewX::float? =>
+      skewY::float? =>
+      pivotX::float? =>
+      pivotY::float? =>
+      T.displayObject =
+      "" [@@bs.send.pipe : t];
   };
   module DisplayObject = {
     /*
@@ -797,6 +997,80 @@ module Impl (T: TYPES) => {
      is hovered over the displayObject.
      */
     external setCursor : t => string => unit = "cursor" [@@bs.set];
+    /*
+     Updates the object transform for rendering
+
+     TODO - Optimization pass!
+     */
+    external updateTransform : unit = "" [@@bs.send.pipe : t];
+    /*
+     recursively updates transform of all objects from the root to this one
+     internal function for toLocal()
+     */
+    external _recursivePostUpdateTransform : unit = "" [@@bs.send.pipe : t];
+    /*
+     Retrieves the bounds of the displayObject as a rectangle object.
+     */
+    external getBounds : skipUpdate::Js.boolean => rect::T.rectangle => T.rectangle =
+      "" [@@bs.send.pipe : t];
+    /*
+     Retrieves the local bounds of the displayObject as a rectangle object
+     */
+    external getLocalBounds : rect::T.rectangle? => T.rectangle = "" [@@bs.send.pipe : t];
+    /*
+     Calculates the global position of the display object
+     */
+    external toGlobal : position::T.point => point::T.point? => skipUpdate::Js.boolean? => T.point =
+      "" [@@bs.send.pipe : t];
+    /*
+     Calculates the local position of the display object relative to another point
+     */
+    external toLocal :
+      position::T.point =>
+      from::T.displayObject? =>
+      point::T.point? =>
+      skipUpdate::Js.boolean? =>
+      T.point =
+      "" [@@bs.send.pipe : t];
+    /*
+     Renders the object using the WebGL renderer
+     */
+    external renderWebGL : renderer::T.webGLRenderer => unit = "" [@@bs.send.pipe : t];
+    /*
+     Renders the object using the Canvas renderer
+     */
+    external renderCanvas : renderer::T.canvasRenderer => unit = "" [@@bs.send.pipe : t];
+    /*
+     Set the parent Container of this DisplayObject
+     */
+    external setParent : container::T.container => T.container = "" [@@bs.send.pipe : t];
+    /*
+     Convenience function to set the position, scale, skew and pivot at once.
+     */
+    external setTransform :
+      x::float? =>
+      y::float? =>
+      scaleX::float? =>
+      scaleY::float? =>
+      rotation::float? =>
+      skewX::float? =>
+      skewY::float? =>
+      pivotX::float? =>
+      pivotY::float? =>
+      T.displayObject =
+      "" [@@bs.send.pipe : t];
+    /*
+     <p>Base destroy method for generic display objects. This will automatically
+     remove the display object from its parent Container as well as remove
+     all current event listeners and internal references. Do not use a DisplayObject
+     after calling <code>destroy</code>.</p>
+     */
+    external destroy : unit = "" [@@bs.send.pipe : t];
+    /*
+     Returns the global position of the displayObject. Does not depend on object scale, rotation and pivot.
+     */
+    external getGlobalPosition : point::T.point => skipUpdate::Js.boolean => T.point =
+      "" [@@bs.send.pipe : t];
   };
   module Transform = {
     /*
@@ -861,6 +1135,18 @@ module Impl (T: TYPES) => {
      The local matrix transform
      */
     external setLocalTransform : t => T.matrix => unit = "localTransform" [@@bs.set];
+    /*
+     Updates only local matrix
+     */
+    external updateLocalTransform : unit = "" [@@bs.send.pipe : t];
+    /*
+     Updates the values of the object and applies the parent's transform.
+     */
+    external updateTransform : parentTransform::T.transform => unit = "" [@@bs.send.pipe : t];
+    /*
+     Decomposes a matrix and sets the transforms properties based on it.
+     */
+    external setFromMatrix : matrix::T.matrix => unit = "" [@@bs.send.pipe : t];
   };
   module TransformBase = {
     /*
@@ -884,6 +1170,14 @@ module Impl (T: TYPES) => {
      The local matrix transform
      */
     external setLocalTransform : t => T.matrix => unit = "localTransform" [@@bs.set];
+    /*
+     TransformBase does not have decomposition, so this function wont do anything
+     */
+    external updateLocalTransform : unit = "" [@@bs.send.pipe : t];
+    /*
+     Updates the values of the object and applies the parent's transform.
+     */
+    external updateTransform : parentTransform::T.transformBase => unit = "" [@@bs.send.pipe : t];
   };
   module TransformStatic = {
     /*
@@ -947,6 +1241,18 @@ module Impl (T: TYPES) => {
      The local matrix transform
      */
     external setLocalTransform : t => T.matrix => unit = "localTransform" [@@bs.set];
+    /*
+     Updates only local matrix
+     */
+    external updateLocalTransform : unit = "" [@@bs.send.pipe : t];
+    /*
+     Updates the values of the object and applies the parent's transform.
+     */
+    external updateTransform : parentTransform::T.transform => unit = "" [@@bs.send.pipe : t];
+    /*
+     Decomposes a matrix and sets the transforms properties based on it.
+     */
+    external setFromMatrix : matrix::T.matrix => unit = "" [@@bs.send.pipe : t];
   };
   module Graphics = {
     /*
@@ -1327,6 +1633,243 @@ module Impl (T: TYPES) => {
      is hovered over the displayObject.
      */
     external setCursor : t => string => unit = "cursor" [@@bs.set];
+    /*
+     Creates a new Graphics object with the same values as this one.
+     Note that the only the properties of the object are cloned, not its transform (position,scale,etc)
+     */
+    external clone : T.graphics = "" [@@bs.send.pipe : t];
+    /*
+     Specifies the line style used for subsequent calls to Graphics methods such as the lineTo()
+     method or the drawCircle() method.
+     */
+    external lineStyle : lineWidth::float? => color::float? => alpha::float? => T.graphics =
+      "" [@@bs.send.pipe : t];
+    /*
+     Moves the current drawing position to x, y.
+     */
+    external moveTo : x::float => y::float => T.graphics = "" [@@bs.send.pipe : t];
+    /*
+     Draws a line using the current line style from the current drawing position to (x, y);
+     The current drawing position is then set to (x, y).
+     */
+    external lineTo : x::float => y::float => T.graphics = "" [@@bs.send.pipe : t];
+    /*
+     Calculate the points for a quadratic bezier curve and then draws it.
+     Based on: https://stackoverflow.com/questions/785097/how-do-i-implement-a-bezier-curve-in-c
+     */
+    external quadraticCurveTo : cpX::float => cpY::float => toX::float => toY::float => T.graphics =
+      "" [@@bs.send.pipe : t];
+    /*
+     Calculate the points for a bezier curve and then draws it.
+     */
+    external bezierCurveTo :
+      cpX::float =>
+      cpY::float =>
+      cpX2::float =>
+      cpY2::float =>
+      toX::float =>
+      toY::float =>
+      T.graphics =
+      "" [@@bs.send.pipe : t];
+    /*
+     The arcTo() method creates an arc/curve between two tangents on the canvas.
+
+     &quot;borrowed&quot; from https://code.google.com/p/fxcanvas/ - thanks google!
+     */
+    external arcTo :
+      x1::float => y1::float => x2::float => y2::float => radius::float => T.graphics =
+      "" [@@bs.send.pipe : t];
+    /*
+     The arc method creates an arc/curve (used to create circles, or parts of circles).
+     */
+    external arc :
+      cx::float =>
+      cy::float =>
+      radius::float =>
+      startAngle::float =>
+      endAngle::float =>
+      anticlockwise::Js.boolean? =>
+      T.graphics =
+      "" [@@bs.send.pipe : t];
+    /*
+     Specifies a simple one-color fill that subsequent calls to other Graphics methods
+     (such as lineTo() or drawCircle()) use when drawing.
+     */
+    external beginFill : color::float? => alpha::float? => T.graphics = "" [@@bs.send.pipe : t];
+    /*
+     Applies a fill to the lines and shapes that were added since the last call to the beginFill() method.
+     */
+    external endFill : T.graphics = "" [@@bs.send.pipe : t];
+    external drawRect : x::float => y::float => width::float => height::float => T.graphics =
+      "" [@@bs.send.pipe : t];
+    external drawRoundedRect :
+      x::float => y::float => width::float => height::float => radius::float => T.graphics =
+      "" [@@bs.send.pipe : t];
+    /*
+     Draws a circle.
+     */
+    external drawCircle : x::float => y::float => radius::float => T.graphics =
+      "" [@@bs.send.pipe : t];
+    /*
+     Draws an ellipse.
+     */
+    external drawEllipse : x::float => y::float => width::float => height::float => T.graphics =
+      "" [@@bs.send.pipe : t];
+    /*
+     Draws a polygon using the given path.
+     */
+    external drawPolygon :
+      path::unit /* unknown js type: Array.<number>|Array.<PIXI.Point> */ => T.graphics =
+      "" [@@bs.send.pipe : t];
+    /*
+     Clears the graphics that were drawn to this Graphics object, and resets fill and line style settings.
+     */
+    external clear : T.graphics = "" [@@bs.send.pipe : t];
+    /*
+     True if graphics consists of one rectangle, and thus, can be drawn like a Sprite and
+     masked with gl.scissor.
+     */
+    external isFastRect : Js.boolean = "" [@@bs.send.pipe : t];
+    /*
+     Tests if a point is inside this graphics object
+     */
+    external containsPoint : point::T.point => Js.boolean = "" [@@bs.send.pipe : t];
+    /*
+     Update the bounds of the object
+     */
+    external updateLocalBounds : unit = "" [@@bs.send.pipe : t];
+    /*
+     Draws the given shape to this Graphics object. Can be any of Circle, Rectangle, Ellipse, Line or Polygon.
+     */
+    external drawShape :
+      shape::
+        unit /* unknown js type: PIXI.Circle|PIXI.Ellipse|PIXI.Polygon|PIXI.Rectangle|PIXI.RoundedRectangle */ =>
+      T.graphicsData =
+      "" [@@bs.send.pipe : t];
+    /*
+     Generates a canvas texture.
+     */
+    external generateCanvasTexture : scaleMode::float => resolution::float => T.texture =
+      "" [@@bs.send.pipe : t];
+    /*
+     Closes the current path.
+     */
+    external closePath : T.graphics = "" [@@bs.send.pipe : t];
+    /*
+     Adds a hole in the current path.
+     */
+    external addHole : T.graphics = "" [@@bs.send.pipe : t];
+    /*
+     Destroys the Graphics object.
+     */
+    external destroy : options::unit /* unknown js type: object|boolean */? => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Adds one or more children to the container.
+
+     <p>Multiple items can be added like so: <code>myContainer.addChild(thingOne, thingTwo, thingThree)</code></p>
+     */
+    external addChild : child::T.displayObject => T.displayObject = "" [@@bs.send.pipe : t];
+    /*
+     Adds a child to the container at a specified index. If the index is out of bounds an error will be thrown
+     */
+    external addChildAt : child::T.displayObject => index::float => T.displayObject =
+      "" [@@bs.send.pipe : t];
+    /*
+     Swaps the position of 2 Display Objects within this container.
+     */
+    external swapChildren : child::T.displayObject => child2::T.displayObject => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Returns the index position of a child DisplayObject instance
+     */
+    external getChildIndex : child::T.displayObject => float = "" [@@bs.send.pipe : t];
+    /*
+     Changes the position of an existing child in the display object container
+     */
+    external setChildIndex : child::T.displayObject => index::float => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Returns the child at the specified index
+     */
+    external getChildAt : index::float => T.displayObject = "" [@@bs.send.pipe : t];
+    /*
+     Removes one or more children from the container.
+     */
+    external removeChild : child::T.displayObject => T.displayObject = "" [@@bs.send.pipe : t];
+    /*
+     Removes a child from the specified index position.
+     */
+    external removeChildAt : index::float => T.displayObject = "" [@@bs.send.pipe : t];
+    /*
+     Removes all children from this container that are within the begin and end indexes.
+     */
+    external removeChildren : beginIndex::float? => endIndex::float? => array T.displayObject =
+      "" [@@bs.send.pipe : t];
+    /*
+     Updates the transform on all children of this container for rendering
+     */
+    external updateTransform : unit = "" [@@bs.send.pipe : t];
+    /*
+     Recalculates the bounds of the container.
+     */
+    external calculateBounds : unit = "" [@@bs.send.pipe : t];
+    /*
+     Renders the object using the WebGL renderer
+     */
+    external renderWebGL : renderer::T.webGLRenderer => unit = "" [@@bs.send.pipe : t];
+    /*
+     Renders the object using the Canvas renderer
+     */
+    external renderCanvas : renderer::T.canvasRenderer => unit = "" [@@bs.send.pipe : t];
+    /*
+     recursively updates transform of all objects from the root to this one
+     internal function for toLocal()
+     */
+    external _recursivePostUpdateTransform : unit = "" [@@bs.send.pipe : t];
+    /*
+     Retrieves the bounds of the displayObject as a rectangle object.
+     */
+    external getBounds : skipUpdate::Js.boolean => rect::T.rectangle => T.rectangle =
+      "" [@@bs.send.pipe : t];
+    /*
+     Retrieves the local bounds of the displayObject as a rectangle object
+     */
+    external getLocalBounds : rect::T.rectangle? => T.rectangle = "" [@@bs.send.pipe : t];
+    /*
+     Calculates the global position of the display object
+     */
+    external toGlobal : position::T.point => point::T.point? => skipUpdate::Js.boolean? => T.point =
+      "" [@@bs.send.pipe : t];
+    /*
+     Calculates the local position of the display object relative to another point
+     */
+    external toLocal :
+      position::T.point =>
+      from::T.displayObject? =>
+      point::T.point? =>
+      skipUpdate::Js.boolean? =>
+      T.point =
+      "" [@@bs.send.pipe : t];
+    /*
+     Set the parent Container of this DisplayObject
+     */
+    external setParent : container::T.container => T.container = "" [@@bs.send.pipe : t];
+    /*
+     Convenience function to set the position, scale, skew and pivot at once.
+     */
+    external setTransform :
+      x::float? =>
+      y::float? =>
+      scaleX::float? =>
+      scaleY::float? =>
+      rotation::float? =>
+      skewX::float? =>
+      skewY::float? =>
+      pivotX::float? =>
+      pivotY::float? =>
+      T.displayObject =
+      "" [@@bs.send.pipe : t];
   };
   module GraphicsData = {
     /*
@@ -1345,6 +1888,19 @@ module Impl (T: TYPES) => {
       unit =>
       t =
       "GraphicsData" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
+    /*
+     Creates a new GraphicsData object with the same values as this one.
+     */
+    external clone : T.graphicsData = "" [@@bs.send.pipe : t];
+    /*
+     Adds a hole to the shape.
+     */
+    external addHole : shape::unit /* unknown js type: PIXI.Rectangle|PIXI.Circle */ => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Destroys the Graphics data.
+     */
+    external destroy : unit = "" [@@bs.send.pipe : t];
   };
   module GraphicsRenderer = {
     /*
@@ -1361,6 +1917,26 @@ module Impl (T: TYPES) => {
      The renderer this manager works for.
      */
     external setRenderer : t => T.webGLRenderer => unit = "renderer" [@@bs.set];
+    /*
+     Destroys this renderer.
+     */
+    external destroy : unit = "" [@@bs.send.pipe : t];
+    /*
+     Renders a graphics object.
+     */
+    external render : graphics::T.graphics => unit = "" [@@bs.send.pipe : t];
+    /*
+     Starts the renderer and sets the shader
+     */
+    external start : unit = "" [@@bs.send.pipe : t];
+    /*
+     Stops the renderer
+     */
+    external stop : unit = "" [@@bs.send.pipe : t];
+    /*
+     Stub method for rendering content and emptying the current batch.
+     */
+    external flush : unit = "" [@@bs.send.pipe : t];
   };
   module PrimitiveShader = {
     /*
@@ -1398,6 +1974,95 @@ module Impl (T: TYPES) => {
     external setTx : t => float => unit = "tx" [@@bs.set];
     external ty : t => float = "" [@@bs.get];
     external setTy : t => float => unit = "ty" [@@bs.set];
+    /*
+     Creates a Matrix object based on the given array. The Element to Matrix mapping order is as follows:
+
+     a = array[0]
+     b = array[1]
+     c = array[3]
+     d = array[4]
+     tx = array[2]
+     ty = array[5]
+     */
+    external fromArray : array::array float => unit = "" [@@bs.send.pipe : t];
+    /*
+     sets the matrix properties
+     */
+    external set :
+      a::float => b::float => c::float => d::float => tx::float => ty::float => T.matrix =
+      "" [@@bs.send.pipe : t];
+    /*
+     Creates an array from the current Matrix object.
+     */
+    external toArray : transpose::Js.boolean => out::Js_typed_array.Float32Array.t? => array float =
+      "" [@@bs.send.pipe : t];
+    /*
+     Get a new position with the current transformation applied.
+     Can be used to go from a child's coordinate space to the world coordinate space. (e.g. rendering)
+     */
+    external apply : pos::T.point => newPos::T.point? => T.point = "" [@@bs.send.pipe : t];
+    /*
+     Get a new position with the inverse of the current transformation applied.
+     Can be used to go from the world coordinate space to a child's coordinate space. (e.g. input)
+     */
+    external applyInverse : pos::T.point => newPos::T.point? => T.point = "" [@@bs.send.pipe : t];
+    /*
+     Translates the matrix on the x and y.
+     */
+    external translate : x::float => y::float => T.matrix = "" [@@bs.send.pipe : t];
+    /*
+     Applies a scale transformation to the matrix.
+     */
+    external scale : x::float => y::float => T.matrix = "" [@@bs.send.pipe : t];
+    /*
+     Applies a rotation transformation to the matrix.
+     */
+    external rotate : angle::float => T.matrix = "" [@@bs.send.pipe : t];
+    /*
+     Appends the given Matrix to this Matrix.
+     */
+    external append : matrix::T.matrix => T.matrix = "" [@@bs.send.pipe : t];
+    /*
+     Sets the matrix based on all the available properties
+     */
+    external setTransform :
+      x::float =>
+      y::float =>
+      pivotX::float =>
+      pivotY::float =>
+      scaleX::float =>
+      scaleY::float =>
+      rotation::float =>
+      skewX::float =>
+      skewY::float =>
+      T.matrix =
+      "" [@@bs.send.pipe : t];
+    /*
+     Prepends the given Matrix to this Matrix.
+     */
+    external prepend : matrix::T.matrix => T.matrix = "" [@@bs.send.pipe : t];
+    /*
+     Decomposes the matrix (x, y, scaleX, scaleY, and rotation) and sets the properties on to a transform.
+     */
+    external decompose :
+      transform::unit /* unknown js type: PIXI.Transform|PIXI.TransformStatic */ => unit /* unknown js type: PIXI.Transform|PIXI.TransformStatic */ =
+      "" [@@bs.send.pipe : t];
+    /*
+     Inverts this matrix
+     */
+    external invert : T.matrix = "" [@@bs.send.pipe : t];
+    /*
+     Resets this Matix to an identity (default) matrix.
+     */
+    external identity : T.matrix = "" [@@bs.send.pipe : t];
+    /*
+     Creates a new Matrix object with the same values as this one.
+     */
+    external clone : T.matrix = "" [@@bs.send.pipe : t];
+    /*
+     Changes the values of the given matrix to be the same as the ones in this matrix
+     */
+    external copy : matrix::T.matrix => T.matrix = "" [@@bs.send.pipe : t];
   };
   module ObservablePoint = {
     /*
@@ -1430,6 +2095,16 @@ module Impl (T: TYPES) => {
      The position of the displayObject on the x axis relative to the local coordinates of the parent.
      */
     external setY : t => float => unit = "y" [@@bs.set];
+    /*
+     Sets the point to a new x and y position.
+     If y is omitted, both x and y will be set to x.
+     */
+    external set : x::float? => y::float? => unit = "" [@@bs.send.pipe : t];
+    /*
+     Copies the data from another point
+     */
+    external copy : point::unit /* unknown js type: PIXI.Point|PIXI.ObservablePoint */ => unit =
+      "" [@@bs.send.pipe : t];
   };
   module Point = {
     /*
@@ -1443,6 +2118,23 @@ module Impl (T: TYPES) => {
     external setX : t => float => unit = "x" [@@bs.set];
     external y : t => float = "" [@@bs.get];
     external setY : t => float => unit = "y" [@@bs.set];
+    /*
+     Creates a clone of this point
+     */
+    external clone : T.point = "" [@@bs.send.pipe : t];
+    /*
+     Copies x and y from the given point
+     */
+    external copy : p::T.point => unit = "" [@@bs.send.pipe : t];
+    /*
+     Returns true if the given point is equal to this point
+     */
+    external equals : p::T.point => Js.boolean = "" [@@bs.send.pipe : t];
+    /*
+     Sets the point to a new x and y position.
+     If y is omitted, both x and y will be set to x.
+     */
+    external set : x::float? => y::float? => unit = "" [@@bs.send.pipe : t];
   };
   module Circle = {
     /*
@@ -1461,6 +2153,18 @@ module Impl (T: TYPES) => {
      <p>The type of the object, mainly used to avoid <code>instanceof</code> checks</p>
      */
     external type_ : t => float = "type" [@@bs.get];
+    /*
+     Creates a clone of this Circle instance
+     */
+    external clone : T.circle = "" [@@bs.send.pipe : t];
+    /*
+     Checks whether the x and y coordinates given are contained within this circle
+     */
+    external contains : x::float => y::float => Js.boolean = "" [@@bs.send.pipe : t];
+    /*
+     Returns the framing rectangle of the circle as a Rectangle object
+     */
+    external getBounds : T.rectangle = "" [@@bs.send.pipe : t];
   };
   module Ellipse = {
     /*
@@ -1481,6 +2185,18 @@ module Impl (T: TYPES) => {
      <p>The type of the object, mainly used to avoid <code>instanceof</code> checks</p>
      */
     external type_ : t => float = "type" [@@bs.get];
+    /*
+     Creates a clone of this Ellipse instance
+     */
+    external clone : T.ellipse = "" [@@bs.send.pipe : t];
+    /*
+     Checks whether the x and y coordinates given are contained within this ellipse
+     */
+    external contains : x::float => y::float => Js.boolean = "" [@@bs.send.pipe : t];
+    /*
+     Returns the framing rectangle of the ellipse as a Rectangle object
+     */
+    external getBounds : T.rectangle = "" [@@bs.send.pipe : t];
   };
   module Polygon = {
     type t = T.polygon;
@@ -1499,6 +2215,18 @@ module Impl (T: TYPES) => {
      <p>The type of the object, mainly used to avoid <code>instanceof</code> checks</p>
      */
     external type_ : t => float = "type" [@@bs.get];
+    /*
+     Creates a clone of this polygon
+     */
+    external clone : T.polygon = "" [@@bs.send.pipe : t];
+    /*
+     Closes the polygon, adding points if necessary.
+     */
+    external close : unit = "" [@@bs.send.pipe : t];
+    /*
+     Checks whether the x and y coordinates passed to this function are contained within this polygon
+     */
+    external contains : x::float => y::float => Js.boolean = "" [@@bs.send.pipe : t];
   };
   module Rectangle = {
     /*
@@ -1552,6 +2280,30 @@ module Impl (T: TYPES) => {
      returns the bottom edge of the rectangle
      */
     external setBottom : t => float => unit = "bottom" [@@bs.set];
+    /*
+     Creates a clone of this Rectangle
+     */
+    external clone : T.rectangle = "" [@@bs.send.pipe : t];
+    /*
+     Copies another rectangle to this one.
+     */
+    external copy : rectangle::T.rectangle => T.rectangle = "" [@@bs.send.pipe : t];
+    /*
+     Checks whether the x and y coordinates given are contained within this Rectangle
+     */
+    external contains : x::float => y::float => Js.boolean = "" [@@bs.send.pipe : t];
+    /*
+     Pads the rectangle making it grow in all directions.
+     */
+    external pad : paddingX::float => paddingY::float => unit = "" [@@bs.send.pipe : t];
+    /*
+     Fits this rectangle around the passed one.
+     */
+    external fit : rectangle::T.rectangle => unit = "" [@@bs.send.pipe : t];
+    /*
+     Enlarges this rectangle to include the passed rectangle.
+     */
+    external enlarge : rectangle::T.rectangle => unit = "" [@@bs.send.pipe : t];
   };
   module RoundedRectangle = {
     /*
@@ -1576,6 +2328,14 @@ module Impl (T: TYPES) => {
      <p>The type of the object, mainly used to avoid <code>instanceof</code> checks</p>
      */
     external type_ : t => float = "type" [@@bs.get];
+    /*
+     Creates a clone of this Rounded Rectangle
+     */
+    external clone : T.roundedRectangle = "" [@@bs.send.pipe : t];
+    /*
+     Checks whether the x and y coordinates given are contained within this Rounded Rectangle
+     */
+    external contains : x::float => y::float => Js.boolean = "" [@@bs.send.pipe : t];
   };
   module SystemRenderer = {
     /*
@@ -1722,6 +2482,22 @@ module Impl (T: TYPES) => {
      The background color to fill if not transparent
      */
     external setBackgroundColor : t => float => unit = "backgroundColor" [@@bs.set];
+    /*
+     Resizes the screen and canvas to the specified width and height
+     Canvas dimensions are multiplied by resolution
+     */
+    external resize : screenWidth::float => screenHeight::float => unit = "" [@@bs.send.pipe : t];
+    /*
+     Useful function that returns a texture of the display object that can then be used to create sprites
+     This can be quite useful if your displayObject is complicated and needs to be reused multiple times.
+     */
+    external generateTexture :
+      displayObject::T.displayObject => scaleMode::float => resolution::float => T.texture =
+      "" [@@bs.send.pipe : t];
+    /*
+     Removes everything from the renderer and optionally removes the Canvas DOM element.
+     */
+    external destroy : removeView::Js.boolean? => unit = "" [@@bs.send.pipe : t];
   };
   module CanvasRenderer = {
     /*
@@ -1926,6 +2702,46 @@ module Impl (T: TYPES) => {
      The background color to fill if not transparent
      */
     external setBackgroundColor : t => float => unit = "backgroundColor" [@@bs.set];
+    /*
+     Renders the object to this canvas view
+     */
+    external render :
+      displayObject::T.displayObject =>
+      renderTexture::T.renderTexture? =>
+      clear::Js.boolean? =>
+      transform::T.transform? =>
+      skipUpdateTransform::Js.boolean? =>
+      unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Clear the canvas of renderer.
+     */
+    external clear : clearColor::string? => unit = "" [@@bs.send.pipe : t];
+    /*
+     Sets the blend mode of the renderer.
+     */
+    external setBlendMode : blendMode::float => unit = "" [@@bs.send.pipe : t];
+    /*
+     Removes everything from the renderer and optionally removes the Canvas DOM element.
+     */
+    external destroy : removeView::Js.boolean? => unit = "" [@@bs.send.pipe : t];
+    /*
+     Resizes the canvas view to the specified width and height.
+     */
+    external resize : screenWidth::float => screenHeight::float => unit = "" [@@bs.send.pipe : t];
+    /*
+     Adds a plugin to the renderer.
+     */
+    external registerPlugin :
+      pluginName::string => ctor::unit /* unknown js type: function */ => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Useful function that returns a texture of the display object that can then be used to create sprites
+     This can be quite useful if your displayObject is complicated and needs to be reused multiple times.
+     */
+    external generateTexture :
+      displayObject::T.displayObject => scaleMode::float => resolution::float => T.texture =
+      "" [@@bs.send.pipe : t];
   };
   module CanvasMaskManager = {
     /*
@@ -1934,6 +2750,23 @@ module Impl (T: TYPES) => {
     type t = T.canvasMaskManager;
     external create : renderer::T.canvasRenderer => unit => t =
       "CanvasMaskManager" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
+    /*
+     This method adds it to the current stack of masks.
+     */
+    external pushMask : maskData::unit /* unknown js type: object */ => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Renders a PIXI.Graphics shape.
+     */
+    external renderGraphicsShape : graphics::T.graphics => unit = "" [@@bs.send.pipe : t];
+    /*
+     Restores the current drawing context to the state it was before the mask was applied.
+     */
+    external popMask : renderer::T.canvasRenderer => unit = "" [@@bs.send.pipe : t];
+    /*
+     Destroys this canvas mask manager.
+     */
+    external destroy : unit = "" [@@bs.send.pipe : t];
   };
   module CanvasRenderTarget = {
     /*
@@ -1975,6 +2808,14 @@ module Impl (T: TYPES) => {
      The height of the canvas buffer in pixels.
      */
     external setHeight : t => float => unit = "height" [@@bs.set];
+    /*
+     Resizes the canvas to the specified width and height.
+     */
+    external resize : width::float => height::float => unit = "" [@@bs.send.pipe : t];
+    /*
+     Destroys this canvas.
+     */
+    external destroy : unit = "" [@@bs.send.pipe : t];
   };
   module TextureGarbageCollector = {
     /*
@@ -1984,6 +2825,20 @@ module Impl (T: TYPES) => {
     type t = T.textureGarbageCollector;
     external create : renderer::T.webGLRenderer => unit => t =
       "TextureGarbageCollector" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
+    /*
+     Checks to see when the last time a texture was used
+     if the texture has not been used for a specified amount of time it will be removed from the GPU
+     */
+    external update : unit = "" [@@bs.send.pipe : t];
+    /*
+     Checks to see when the last time a texture was used
+     if the texture has not been used for a specified amount of time it will be removed from the GPU
+     */
+    external run : unit = "" [@@bs.send.pipe : t];
+    /*
+     Removes all the textures within the specified displayObject and its children from the GPU
+     */
+    external unload : displayObject::T.displayObject => unit = "" [@@bs.send.pipe : t];
   };
   module TextureManager = {
     /*
@@ -2008,6 +2863,36 @@ module Impl (T: TYPES) => {
      The current WebGL rendering context
      */
     external setGl : t => ReasonJs.Gl.glT => unit = "gl" [@@bs.set];
+    /*
+     Binds a texture.
+     */
+    external bindTexture : unit = "" [@@bs.send.pipe : t];
+    /*
+     Gets a texture.
+     */
+    external getTexture : unit = "" [@@bs.send.pipe : t];
+    /*
+     Updates and/or Creates a WebGL texture for the renderer's context.
+     */
+    external updateTexture :
+      texture::unit /* unknown js type: PIXI.BaseTexture|PIXI.Texture */ => location::float => unit /* unknown js type: GLTexture */ =
+      "" [@@bs.send.pipe : t];
+    /*
+     Deletes the texture from WebGL
+     */
+    external destroyTexture :
+      texture::unit /* unknown js type: PIXI.BaseTexture|PIXI.Texture */ =>
+      skipRemove::Js.boolean? =>
+      unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Deletes all the textures from WebGL
+     */
+    external removeAll : unit = "" [@@bs.send.pipe : t];
+    /*
+     Destroys this manager and removes all its textures
+     */
+    external destroy : unit = "" [@@bs.send.pipe : t];
   };
   module WebGLRenderer = {
     /*
@@ -2246,6 +3131,108 @@ module Impl (T: TYPES) => {
      The background color to fill if not transparent
      */
     external setBackgroundColor : t => float => unit = "backgroundColor" [@@bs.set];
+    /*
+     Renders the object to its webGL view
+     */
+    external render :
+      displayObject::T.displayObject =>
+      renderTexture::T.renderTexture =>
+      clear::Js.boolean? =>
+      transform::T.transform? =>
+      skipUpdateTransform::Js.boolean? =>
+      unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Changes the current renderer to the one given in parameter
+     */
+    external setObjectRenderer : objectRenderer::T.objectRenderer => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     This should be called if you wish to do some custom rendering
+     It will basically render anything that may be batched up such as sprites
+     */
+    external flush : unit = "" [@@bs.send.pipe : t];
+    /*
+     Resizes the webGL view to the specified width and height.
+     */
+    external resize : screenWidth::float => screenHeight::float => unit = "" [@@bs.send.pipe : t];
+    /*
+     Resizes the webGL view to the specified width and height.
+     */
+    external setBlendMode : blendMode::float => unit = "" [@@bs.send.pipe : t];
+    /*
+     Erases the active render target and fills the drawing area with a colour
+     */
+    external clear : clearColor::float? => unit = "" [@@bs.send.pipe : t];
+    /*
+     Sets the transform of the active render target to the given matrix
+     */
+    external setTransform : matrix::T.matrix => unit = "" [@@bs.send.pipe : t];
+    /*
+     Erases the render texture and fills the drawing area with a colour
+     */
+    external clearRenderTexture :
+      renderTexture::T.renderTexture => clearColor::float? => T.webGLRenderer =
+      "" [@@bs.send.pipe : t];
+    /*
+     Binds a render texture for rendering
+     */
+    external bindRenderTexture :
+      renderTexture::T.renderTexture => transform::T.transform => T.webGLRenderer =
+      "" [@@bs.send.pipe : t];
+    /*
+     Changes the current render target to the one given in parameter
+     */
+    external bindRenderTarget : renderTarget::T.renderTarget => T.webGLRenderer =
+      "" [@@bs.send.pipe : t];
+    /*
+     Changes the current shader to the one given in parameter
+     */
+    external bindShader : shader::T.shader => autoProject::Js.boolean? => T.webGLRenderer =
+      "" [@@bs.send.pipe : t];
+    /*
+     Binds the texture. This will return the location of the bound texture.
+     It may not be the same as the one you pass in. This is due to optimisation that prevents
+     needless binding of textures. For example if the texture is already bound it will return the
+     current location of the texture instead of the one provided. To bypass this use force location
+     */
+    external bindTexture :
+      texture::T.texture => location::float => forceLocation::Js.boolean => float =
+      "" [@@bs.send.pipe : t];
+    /*
+     unbinds the texture ...
+     */
+    external unbindTexture : texture::T.texture => T.webGLRenderer = "" [@@bs.send.pipe : t];
+    /*
+     Creates a new VAO from this renderer's context and state.
+     */
+    external createVao : unit /* unknown js type: VertexArrayObject */ = "" [@@bs.send.pipe : t];
+    /*
+     Changes the current Vao to the one given in parameter
+     */
+    external bindVao : vao::unit /* unknown js type: PIXI.VertexArrayObject */ => T.webGLRenderer =
+      "" [@@bs.send.pipe : t];
+    /*
+     Resets the WebGL state so you can render things however you fancy!
+     */
+    external reset : T.webGLRenderer = "" [@@bs.send.pipe : t];
+    /*
+     Removes everything from the renderer (event listeners, spritebatch, etc...)
+     */
+    external destroy : removeView::Js.boolean? => unit = "" [@@bs.send.pipe : t];
+    /*
+     Adds a plugin to the renderer.
+     */
+    external registerPlugin :
+      pluginName::string => ctor::unit /* unknown js type: function */ => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Useful function that returns a texture of the display object that can then be used to create sprites
+     This can be quite useful if your displayObject is complicated and needs to be reused multiple times.
+     */
+    external generateTexture :
+      displayObject::T.displayObject => scaleMode::float => resolution::float => T.texture =
+      "" [@@bs.send.pipe : t];
   };
   module WebGLState = {
     /*
@@ -2257,20 +3244,19 @@ module Impl (T: TYPES) => {
     /*
      The current active state
      */
-    external activeState : t => unit /* unknown js type: Uint8Array */ = "" [@@bs.get];
+    external activeState : t => Js_typed_array.Uint8Array.t = "" [@@bs.get];
     /*
      The current active state
      */
-    external setActiveState : t => unit /* unknown js type: Uint8Array */ => unit =
-      "activeState" [@@bs.set];
+    external setActiveState : t => Js_typed_array.Uint8Array.t => unit = "activeState" [@@bs.set];
     /*
      The default state
      */
-    external defaultState : t => unit /* unknown js type: Uint8Array */ = "" [@@bs.get];
+    external defaultState : t => Js_typed_array.Uint8Array.t = "" [@@bs.get];
     /*
      The default state
      */
-    external setDefaultState : t => unit /* unknown js type: Uint8Array */ => unit =
+    external setDefaultState : t => Js_typed_array.Uint8Array.t => unit =
       "defaultState" [@@bs.set];
     /*
      The current WebGL rendering context
@@ -2280,6 +3266,46 @@ module Impl (T: TYPES) => {
      The current WebGL rendering context
      */
     external setGl : t => ReasonJs.Gl.glT => unit = "gl" [@@bs.set];
+    /*
+     Pushes a new active state
+     */
+    external push : unit = "" [@@bs.send.pipe : t];
+    /*
+     Pops a state out
+     */
+    external pop : unit = "" [@@bs.send.pipe : t];
+    /*
+     Sets the current state
+     */
+    external setState : state::unit /* unknown js type: * */ => unit = "" [@@bs.send.pipe : t];
+    /*
+     Enables or disabled blending.
+     */
+    external setBlend : value::Js.boolean => unit = "" [@@bs.send.pipe : t];
+    /*
+     Sets the blend mode.
+     */
+    external setBlendMode : value::float => unit = "" [@@bs.send.pipe : t];
+    /*
+     Sets whether to enable or disable depth test.
+     */
+    external setDepthTest : value::Js.boolean => unit = "" [@@bs.send.pipe : t];
+    /*
+     Sets whether to enable or disable cull face.
+     */
+    external setCullFace : value::Js.boolean => unit = "" [@@bs.send.pipe : t];
+    /*
+     Sets the gl front face.
+     */
+    external setFrontFace : value::Js.boolean => unit = "" [@@bs.send.pipe : t];
+    /*
+     Disables all the vaos in use
+     */
+    external resetAttributes : unit = "" [@@bs.send.pipe : t];
+    /*
+     Resets all the logic and disables the vaos
+     */
+    external resetToDefault : unit = "" [@@bs.send.pipe : t];
   };
   module Filter = {
     type t = T.filter;
@@ -2354,6 +3380,17 @@ module Impl (T: TYPES) => {
      Switch it off if it does not work for specific shader.
      */
     external setAutoFit : t => Js.boolean => unit = "autoFit" [@@bs.set];
+    /*
+     Applies the filter
+     */
+    external apply :
+      filterManager::T.filterManager =>
+      input::T.renderTarget =>
+      output::T.renderTarget =>
+      clear::Js.boolean =>
+      currentState::unit /* unknown js type: object */? =>
+      unit =
+      "" [@@bs.send.pipe : t];
   };
   module SpriteMaskFilter = {
     /*
@@ -2426,6 +3463,12 @@ module Impl (T: TYPES) => {
      Switch it off if it does not work for specific shader.
      */
     external setAutoFit : t => Js.boolean => unit = "autoFit" [@@bs.set];
+    /*
+     Applies the filter
+     */
+    external apply :
+      filterManager::T.filterManager => input::T.renderTarget => output::T.renderTarget => unit =
+      "" [@@bs.send.pipe : t];
   };
   module BlendModeManager = {
     type t = T.blendModeManager;
@@ -2441,6 +3484,18 @@ module Impl (T: TYPES) => {
      The renderer this manager works for.
      */
     external setRenderer : t => T.webGLRenderer => unit = "renderer" [@@bs.set];
+    /*
+     Sets-up the given blendMode from WebGL's point of view.
+     */
+    external setBlendMode : blendMode::float => Js.boolean = "" [@@bs.send.pipe : t];
+    /*
+     Generic method called when there is a WebGL context change.
+     */
+    external onContextChange : unit = "" [@@bs.send.pipe : t];
+    /*
+     Generic destroy methods to be overridden by the subclass
+     */
+    external destroy : unit = "" [@@bs.send.pipe : t];
   };
   module FilterManager = {
     type t = T.filterManager;
@@ -2454,6 +3509,74 @@ module Impl (T: TYPES) => {
      The renderer this manager works for.
      */
     external setRenderer : t => T.webGLRenderer => unit = "renderer" [@@bs.set];
+    /*
+     Adds a new filter to the manager.
+     */
+    external pushFilter : target::T.displayObject => filters::array T.filter => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Pops off the filter and applies it.
+     */
+    external popFilter : unit = "" [@@bs.send.pipe : t];
+    /*
+     Draws a filter.
+     */
+    external applyFilter :
+      filter::T.filter =>
+      input::T.renderTarget =>
+      output::T.renderTarget =>
+      clear::Js.boolean =>
+      unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Uploads the uniforms of the filter.
+     */
+    external syncUniforms :
+      shader::unit /* unknown js type: GLShader */ => filter::T.filter => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Gets a render target from the pool, or creates a new one.
+     */
+    external getRenderTarget : clear::Js.boolean => resolution::float => T.renderTarget =
+      "" [@@bs.send.pipe : t];
+    /*
+     Returns a render target to the pool.
+     */
+    external returnRenderTarget : renderTarget::T.renderTarget => unit = "" [@@bs.send.pipe : t];
+    /*
+     Calculates the mapped matrix.
+
+     TODO playing around here.. this is temporary - (will end up in the shader)
+     this returns a matrix that will normalise map filter cords in the filter to screen space
+     */
+    external calculateScreenSpaceMatrix : outputMatrix::T.matrix => T.matrix =
+      "" [@@bs.send.pipe : t];
+    /*
+     Multiply vTextureCoord to this matrix to achieve (0,0,1,1) for filterArea
+     */
+    external calculateNormalizedScreenSpaceMatrix : outputMatrix::T.matrix => T.matrix =
+      "" [@@bs.send.pipe : t];
+    /*
+     This will map the filter coord so that a texture can be used based on the transform of a sprite
+     */
+    external calculateSpriteMatrix : outputMatrix::T.matrix => sprite::T.sprite => T.matrix =
+      "" [@@bs.send.pipe : t];
+    /*
+     Destroys this Filter Manager.
+     */
+    external destroy : unit = "" [@@bs.send.pipe : t];
+    /*
+     Empties the texture pool.
+     */
+    external emptyPool : unit = "" [@@bs.send.pipe : t];
+    /*
+     Frees a render target back into the pool.
+     */
+    external freePotRenderTarget : renderTarget::T.renderTarget => unit = "" [@@bs.send.pipe : t];
+    /*
+     Generic method called when there is a WebGL context change.
+     */
+    external onContextChange : unit = "" [@@bs.send.pipe : t];
   };
   module MaskManager = {
     type t = T.maskManager;
@@ -2467,6 +3590,52 @@ module Impl (T: TYPES) => {
      The renderer this manager works for.
      */
     external setRenderer : t => T.webGLRenderer => unit = "renderer" [@@bs.set];
+    /*
+     Applies the Mask and adds it to the current filter stack.
+     */
+    external pushMask :
+      target::T.displayObject =>
+      maskData::unit /* unknown js type: PIXI.Sprite|PIXI.Graphics */ =>
+      unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Removes the last mask from the mask stack and doesn't return it.
+     */
+    external popMask :
+      target::T.displayObject =>
+      maskData::unit /* unknown js type: PIXI.Sprite|PIXI.Graphics */ =>
+      unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Applies the Mask and adds it to the current filter stack.
+     */
+    external pushSpriteMask : target::T.renderTarget => maskData::T.sprite => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Removes the last filter from the filter stack and doesn't return it.
+     */
+    external popSpriteMask : unit = "" [@@bs.send.pipe : t];
+    /*
+     Applies the Mask and adds it to the current filter stack.
+     */
+    external pushStencilMask :
+      maskData::unit /* unknown js type: PIXI.Sprite|PIXI.Graphics */ => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Removes the last filter from the filter stack and doesn't return it.
+     */
+    external popStencilMask : unit = "" [@@bs.send.pipe : t];
+    external pushScissorMask : target::T.displayObject => maskData::T.graphics => unit =
+      "" [@@bs.send.pipe : t];
+    external popScissorMask : unit = "" [@@bs.send.pipe : t];
+    /*
+     Generic method called when there is a WebGL context change.
+     */
+    external onContextChange : unit = "" [@@bs.send.pipe : t];
+    /*
+     Generic destroy methods to be overridden by the subclass
+     */
+    external destroy : unit = "" [@@bs.send.pipe : t];
   };
   module StencilManager = {
     type t = T.stencilManager;
@@ -2480,6 +3649,26 @@ module Impl (T: TYPES) => {
      The renderer this manager works for.
      */
     external setRenderer : t => T.webGLRenderer => unit = "renderer" [@@bs.set];
+    /*
+     Changes the mask stack that is used by this manager.
+     */
+    external setMaskStack : stencilMaskStack::array T.graphics => unit = "" [@@bs.send.pipe : t];
+    /*
+     Applies the Mask and adds it to the current filter stack. @alvin
+     */
+    external pushStencil : graphics::T.graphics => unit = "" [@@bs.send.pipe : t];
+    /*
+     TODO @alvin
+     */
+    external popStencil : unit = "" [@@bs.send.pipe : t];
+    /*
+     Destroys the mask stack.
+     */
+    external destroy : unit = "" [@@bs.send.pipe : t];
+    /*
+     Generic method called when there is a WebGL context change.
+     */
+    external onContextChange : unit = "" [@@bs.send.pipe : t];
   };
   module WebGLManager = {
     type t = T.webGLManager;
@@ -2493,6 +3682,14 @@ module Impl (T: TYPES) => {
      The renderer this manager works for.
      */
     external setRenderer : t => T.webGLRenderer => unit = "renderer" [@@bs.set];
+    /*
+     Generic method called when there is a WebGL context change.
+     */
+    external onContextChange : unit = "" [@@bs.send.pipe : t];
+    /*
+     Generic destroy methods to be overridden by the subclass
+     */
+    external destroy : unit = "" [@@bs.send.pipe : t];
   };
   module ObjectRenderer = {
     /*
@@ -2508,6 +3705,30 @@ module Impl (T: TYPES) => {
      The renderer this manager works for.
      */
     external setRenderer : t => T.webGLRenderer => unit = "renderer" [@@bs.set];
+    /*
+     Starts the renderer and sets the shader
+     */
+    external start : unit = "" [@@bs.send.pipe : t];
+    /*
+     Stops the renderer
+     */
+    external stop : unit = "" [@@bs.send.pipe : t];
+    /*
+     Stub method for rendering content and emptying the current batch.
+     */
+    external flush : unit = "" [@@bs.send.pipe : t];
+    /*
+     Renders an object
+     */
+    external render : object::T.displayObject => unit = "" [@@bs.send.pipe : t];
+    /*
+     Generic method called when there is a WebGL context change.
+     */
+    external onContextChange : unit = "" [@@bs.send.pipe : t];
+    /*
+     Generic destroy methods to be overridden by the subclass
+     */
+    external destroy : unit = "" [@@bs.send.pipe : t];
   };
   module Quad = {
     /*
@@ -2527,29 +3748,27 @@ module Impl (T: TYPES) => {
     /*
      An array of vertices
      */
-    external vertices : t => unit /* unknown js type: Float32Array */ = "" [@@bs.get];
+    external vertices : t => Js_typed_array.Float32Array.t = "" [@@bs.get];
     /*
      An array of vertices
      */
-    external setVertices : t => unit /* unknown js type: Float32Array */ => unit =
-      "vertices" [@@bs.set];
+    external setVertices : t => Js_typed_array.Float32Array.t => unit = "vertices" [@@bs.set];
     /*
      The Uvs of the quad
      */
-    external uvs : t => unit /* unknown js type: Float32Array */ = "" [@@bs.get];
+    external uvs : t => Js_typed_array.Float32Array.t = "" [@@bs.get];
     /*
      The Uvs of the quad
      */
-    external setUvs : t => unit /* unknown js type: Float32Array */ => unit = "uvs" [@@bs.set];
+    external setUvs : t => Js_typed_array.Float32Array.t => unit = "uvs" [@@bs.set];
     /*
      An array containing the indices of the vertices
      */
-    external indices : t => unit /* unknown js type: Uint16Array */ = "" [@@bs.get];
+    external indices : t => Js_typed_array.Uint16Array.t = "" [@@bs.get];
     /*
      An array containing the indices of the vertices
      */
-    external setIndices : t => unit /* unknown js type: Uint16Array */ => unit =
-      "indices" [@@bs.set];
+    external setIndices : t => Js_typed_array.Uint16Array.t => unit = "indices" [@@bs.set];
     /*
      The vertex buffer
      */
@@ -2577,6 +3796,23 @@ module Impl (T: TYPES) => {
      */
     external setVao : t => unit /* unknown js type: glCore.VertexArrayObject */ => unit =
       "vao" [@@bs.set];
+    /*
+     Initialises the vaos and uses the shader.
+     */
+    external initVao : shader::T.shader => unit = "" [@@bs.send.pipe : t];
+    /*
+     Maps two Rectangle to the quad.
+     */
+    external map : targetTextureFrame::T.rectangle => destinationFrame::T.rectangle => T.quad =
+      "" [@@bs.send.pipe : t];
+    /*
+     Binds the buffer and uploads the data
+     */
+    external upload : T.quad = "" [@@bs.send.pipe : t];
+    /*
+     Removes this quad from WebGL
+     */
+    external destroy : unit = "" [@@bs.send.pipe : t];
   };
   module RenderTarget = {
     type t = T.renderTarget;
@@ -2716,6 +3952,37 @@ module Impl (T: TYPES) => {
      Whether this object is the root element or not
      */
     external setRoot : t => Js.boolean => unit = "root" [@@bs.set];
+    /*
+     Clears the filter texture.
+     */
+    external clear : clearColor::array float? => unit = "" [@@bs.send.pipe : t];
+    /*
+     Binds the stencil buffer.
+     */
+    external attachStencilBuffer : unit = "" [@@bs.send.pipe : t];
+    /*
+     Sets the frame of the render target.
+     */
+    external setFrame : destinationFrame::T.rectangle => sourceFrame::T.rectangle => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Binds the buffers and initialises the viewport.
+     */
+    external activate : unit = "" [@@bs.send.pipe : t];
+    /*
+     Updates the projection matrix based on a projection frame (which is a rectangle)
+     */
+    external calculateProjection :
+      destinationFrame::T.rectangle => sourceFrame::T.rectangle => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Resizes the texture to the specified width and height
+     */
+    external resize : width::float => height::float => unit = "" [@@bs.send.pipe : t];
+    /*
+     Destroys the render target.
+     */
+    external destroy : unit = "" [@@bs.send.pipe : t];
   };
   module Sprite = {
     /*
@@ -3070,6 +4337,130 @@ module Impl (T: TYPES) => {
      is hovered over the displayObject.
      */
     external setCursor : t => string => unit = "cursor" [@@bs.set];
+    /*
+     calculates worldTransform * vertices, store it in vertexData
+     */
+    external calculateVertices : unit = "" [@@bs.send.pipe : t];
+    /*
+     calculates worldTransform * vertices for a non texture with a trim. store it in vertexTrimmedData
+     This is used to ensure that the true width and height of a trimmed texture is respected
+     */
+    external calculateTrimmedVertices : unit = "" [@@bs.send.pipe : t];
+    /*
+     Gets the local bounds of the sprite object.
+     */
+    external getLocalBounds : rect::T.rectangle => T.rectangle = "" [@@bs.send.pipe : t];
+    /*
+     Tests if a point is inside this sprite
+     */
+    external containsPoint : point::T.point => Js.boolean = "" [@@bs.send.pipe : t];
+    /*
+     Destroys this sprite and optionally its texture and children
+     */
+    external destroy : options::unit /* unknown js type: object|boolean */? => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Adds one or more children to the container.
+
+     <p>Multiple items can be added like so: <code>myContainer.addChild(thingOne, thingTwo, thingThree)</code></p>
+     */
+    external addChild : child::T.displayObject => T.displayObject = "" [@@bs.send.pipe : t];
+    /*
+     Adds a child to the container at a specified index. If the index is out of bounds an error will be thrown
+     */
+    external addChildAt : child::T.displayObject => index::float => T.displayObject =
+      "" [@@bs.send.pipe : t];
+    /*
+     Swaps the position of 2 Display Objects within this container.
+     */
+    external swapChildren : child::T.displayObject => child2::T.displayObject => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Returns the index position of a child DisplayObject instance
+     */
+    external getChildIndex : child::T.displayObject => float = "" [@@bs.send.pipe : t];
+    /*
+     Changes the position of an existing child in the display object container
+     */
+    external setChildIndex : child::T.displayObject => index::float => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Returns the child at the specified index
+     */
+    external getChildAt : index::float => T.displayObject = "" [@@bs.send.pipe : t];
+    /*
+     Removes one or more children from the container.
+     */
+    external removeChild : child::T.displayObject => T.displayObject = "" [@@bs.send.pipe : t];
+    /*
+     Removes a child from the specified index position.
+     */
+    external removeChildAt : index::float => T.displayObject = "" [@@bs.send.pipe : t];
+    /*
+     Removes all children from this container that are within the begin and end indexes.
+     */
+    external removeChildren : beginIndex::float? => endIndex::float? => array T.displayObject =
+      "" [@@bs.send.pipe : t];
+    /*
+     Updates the transform on all children of this container for rendering
+     */
+    external updateTransform : unit = "" [@@bs.send.pipe : t];
+    /*
+     Recalculates the bounds of the container.
+     */
+    external calculateBounds : unit = "" [@@bs.send.pipe : t];
+    /*
+     Renders the object using the WebGL renderer
+     */
+    external renderWebGL : renderer::T.webGLRenderer => unit = "" [@@bs.send.pipe : t];
+    /*
+     Renders the object using the Canvas renderer
+     */
+    external renderCanvas : renderer::T.canvasRenderer => unit = "" [@@bs.send.pipe : t];
+    /*
+     recursively updates transform of all objects from the root to this one
+     internal function for toLocal()
+     */
+    external _recursivePostUpdateTransform : unit = "" [@@bs.send.pipe : t];
+    /*
+     Retrieves the bounds of the displayObject as a rectangle object.
+     */
+    external getBounds : skipUpdate::Js.boolean => rect::T.rectangle => T.rectangle =
+      "" [@@bs.send.pipe : t];
+    /*
+     Calculates the global position of the display object
+     */
+    external toGlobal : position::T.point => point::T.point? => skipUpdate::Js.boolean? => T.point =
+      "" [@@bs.send.pipe : t];
+    /*
+     Calculates the local position of the display object relative to another point
+     */
+    external toLocal :
+      position::T.point =>
+      from::T.displayObject? =>
+      point::T.point? =>
+      skipUpdate::Js.boolean? =>
+      T.point =
+      "" [@@bs.send.pipe : t];
+    /*
+     Set the parent Container of this DisplayObject
+     */
+    external setParent : container::T.container => T.container = "" [@@bs.send.pipe : t];
+    /*
+     Convenience function to set the position, scale, skew and pivot at once.
+     */
+    external setTransform :
+      x::float? =>
+      y::float? =>
+      scaleX::float? =>
+      scaleY::float? =>
+      rotation::float? =>
+      skewX::float? =>
+      skewY::float? =>
+      pivotX::float? =>
+      pivotY::float? =>
+      T.displayObject =
+      "" [@@bs.send.pipe : t];
   };
   module CanvasTinter = {
     type t = T.canvasTinter;
@@ -3082,21 +4473,24 @@ module Impl (T: TYPES) => {
     /*
      View on the vertices as a Float32Array for positions
      */
-    external float32View : t => unit /* unknown js type: Float32Array */ = "" [@@bs.get];
+    external float32View : t => Js_typed_array.Float32Array.t = "" [@@bs.get];
     /*
      View on the vertices as a Float32Array for positions
      */
-    external setFloat32View : t => unit /* unknown js type: Float32Array */ => unit =
+    external setFloat32View : t => Js_typed_array.Float32Array.t => unit =
       "float32View" [@@bs.set];
     /*
      View on the vertices as a Uint32Array for uvs
      */
-    external uint32View : t => unit /* unknown js type: Float32Array */ = "" [@@bs.get];
+    external uint32View : t => Js_typed_array.Float32Array.t = "" [@@bs.get];
     /*
      View on the vertices as a Uint32Array for uvs
      */
-    external setUint32View : t => unit /* unknown js type: Float32Array */ => unit =
-      "uint32View" [@@bs.set];
+    external setUint32View : t => Js_typed_array.Float32Array.t => unit = "uint32View" [@@bs.set];
+    /*
+     Destroys the buffer.
+     */
+    external destroy : unit = "" [@@bs.send.pipe : t];
   };
   module Text = {
     /*
@@ -3501,6 +4895,136 @@ module Impl (T: TYPES) => {
      is hovered over the displayObject.
      */
     external setCursor : t => string => unit = "cursor" [@@bs.set];
+    /*
+     Renders the object using the WebGL renderer
+     */
+    external renderWebGL : renderer::T.webGLRenderer => unit = "" [@@bs.send.pipe : t];
+    /*
+     Gets the local bounds of the text object.
+     */
+    external getLocalBounds : rect::T.rectangle => T.rectangle = "" [@@bs.send.pipe : t];
+    /*
+     calculates the bounds of the Text as a rectangle. The bounds calculation takes the worldTransform into account.
+     */
+    external _calculateBounds : unit = "" [@@bs.send.pipe : t];
+    /*
+     Destroys this text object.
+     Note* Unlike a Sprite, a Text object will automatically destroy its baseTexture and texture as
+     the majority of the time the texture will not be shared with any other Sprites.
+     */
+    external destroy : options::unit /* unknown js type: object|boolean */? => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     calculates worldTransform * vertices, store it in vertexData
+     */
+    external calculateVertices : unit = "" [@@bs.send.pipe : t];
+    /*
+     calculates worldTransform * vertices for a non texture with a trim. store it in vertexTrimmedData
+     This is used to ensure that the true width and height of a trimmed texture is respected
+     */
+    external calculateTrimmedVertices : unit = "" [@@bs.send.pipe : t];
+    /*
+     Tests if a point is inside this sprite
+     */
+    external containsPoint : point::T.point => Js.boolean = "" [@@bs.send.pipe : t];
+    /*
+     Adds one or more children to the container.
+
+     <p>Multiple items can be added like so: <code>myContainer.addChild(thingOne, thingTwo, thingThree)</code></p>
+     */
+    external addChild : child::T.displayObject => T.displayObject = "" [@@bs.send.pipe : t];
+    /*
+     Adds a child to the container at a specified index. If the index is out of bounds an error will be thrown
+     */
+    external addChildAt : child::T.displayObject => index::float => T.displayObject =
+      "" [@@bs.send.pipe : t];
+    /*
+     Swaps the position of 2 Display Objects within this container.
+     */
+    external swapChildren : child::T.displayObject => child2::T.displayObject => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Returns the index position of a child DisplayObject instance
+     */
+    external getChildIndex : child::T.displayObject => float = "" [@@bs.send.pipe : t];
+    /*
+     Changes the position of an existing child in the display object container
+     */
+    external setChildIndex : child::T.displayObject => index::float => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Returns the child at the specified index
+     */
+    external getChildAt : index::float => T.displayObject = "" [@@bs.send.pipe : t];
+    /*
+     Removes one or more children from the container.
+     */
+    external removeChild : child::T.displayObject => T.displayObject = "" [@@bs.send.pipe : t];
+    /*
+     Removes a child from the specified index position.
+     */
+    external removeChildAt : index::float => T.displayObject = "" [@@bs.send.pipe : t];
+    /*
+     Removes all children from this container that are within the begin and end indexes.
+     */
+    external removeChildren : beginIndex::float? => endIndex::float? => array T.displayObject =
+      "" [@@bs.send.pipe : t];
+    /*
+     Updates the transform on all children of this container for rendering
+     */
+    external updateTransform : unit = "" [@@bs.send.pipe : t];
+    /*
+     Recalculates the bounds of the container.
+     */
+    external calculateBounds : unit = "" [@@bs.send.pipe : t];
+    /*
+     Renders the object using the Canvas renderer
+     */
+    external renderCanvas : renderer::T.canvasRenderer => unit = "" [@@bs.send.pipe : t];
+    /*
+     recursively updates transform of all objects from the root to this one
+     internal function for toLocal()
+     */
+    external _recursivePostUpdateTransform : unit = "" [@@bs.send.pipe : t];
+    /*
+     Retrieves the bounds of the displayObject as a rectangle object.
+     */
+    external getBounds : skipUpdate::Js.boolean => rect::T.rectangle => T.rectangle =
+      "" [@@bs.send.pipe : t];
+    /*
+     Calculates the global position of the display object
+     */
+    external toGlobal : position::T.point => point::T.point? => skipUpdate::Js.boolean? => T.point =
+      "" [@@bs.send.pipe : t];
+    /*
+     Calculates the local position of the display object relative to another point
+     */
+    external toLocal :
+      position::T.point =>
+      from::T.displayObject? =>
+      point::T.point? =>
+      skipUpdate::Js.boolean? =>
+      T.point =
+      "" [@@bs.send.pipe : t];
+    /*
+     Set the parent Container of this DisplayObject
+     */
+    external setParent : container::T.container => T.container = "" [@@bs.send.pipe : t];
+    /*
+     Convenience function to set the position, scale, skew and pivot at once.
+     */
+    external setTransform :
+      x::float? =>
+      y::float? =>
+      scaleX::float? =>
+      scaleY::float? =>
+      rotation::float? =>
+      skewX::float? =>
+      skewY::float? =>
+      pivotX::float? =>
+      pivotY::float? =>
+      T.displayObject =
+      "" [@@bs.send.pipe : t];
   };
   module TextMetrics = {
     /*
@@ -3568,6 +5092,19 @@ module Impl (T: TYPES) => {
       "" [@@bs.obj];
     external create : style::createStyle? => unit => t =
       "TextStyle" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
+    /*
+     Creates a new TextStyle object with the same values as this one.
+     Note that the only the properties of the object are cloned.
+     */
+    external clone : T.textStyle = "" [@@bs.send.pipe : t];
+    /*
+     Resets all properties to the defaults specified in TextStyle.prototype._default
+     */
+    external reset : unit = "" [@@bs.send.pipe : t];
+    /*
+     <p>Generates a font style string to use for <code>TextMetrics.measureFont()</code>.</p>
+     */
+    external toFontString : string = "" [@@bs.send.pipe : t];
   };
   module BaseRenderTexture = {
     /*
@@ -3728,6 +5265,75 @@ module Impl (T: TYPES) => {
      BaseTexture is added directly to the BaseTextureCache array.
      */
     external setTextureCacheIds : t => array string => unit = "textureCacheIds" [@@bs.set];
+    /*
+     Resizes the BaseRenderTexture.
+     */
+    external resize : width::float => height::float => unit = "" [@@bs.send.pipe : t];
+    /*
+     Destroys this texture
+     */
+    external destroy : unit = "" [@@bs.send.pipe : t];
+    /*
+     Updates the texture on all the webgl renderers, this also assumes the src has changed.
+     */
+    external update : unit = "" [@@bs.send.pipe : t];
+    /*
+     Update dimensions from real values
+     */
+    external _updateDimensions : unit = "" [@@bs.send.pipe : t];
+    /*
+     Load a source.
+
+     <p>If the source is not-immediately-available, such as an image that needs to be
+     downloaded, then the 'loaded' or 'error' event will be dispatched in the future
+     and <code>hasLoaded</code> will remain false after this call.</p>
+     <p>The logic state after calling <code>loadSource</code> directly or indirectly (eg. <code>fromImage</code>, <code>new BaseTexture</code>) is:</p>
+     <pre class="prettyprint source"><code>if (texture.hasLoaded) {
+        // texture ready for use
+     } else if (texture.isLoading) {
+        // listen to 'loaded' and/or 'error' events on texture
+     } else {
+        // not loading, not going to load UNLESS the source is reloaded
+        // (it may still make sense to listen to the events)
+     }</code></pre>
+     */
+    external loadSource :
+      source::unit /* unknown js type: HTMLImageElement|HTMLCanvasElement */ => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Updates type of the source image.
+     */
+    external _updateImageType : unit = "" [@@bs.send.pipe : t];
+    /*
+     <p>Checks if <code>source</code> is an SVG image and whether it's loaded via a URL or a data URI. Then calls
+     <code>_loadSvgSourceUsingDataUri</code> or <code>_loadSvgSourceUsingXhr</code>.</p>
+     */
+    external _loadSvgSource : unit = "" [@@bs.send.pipe : t];
+    /*
+     <p>Reads an SVG string from data URI and then calls <code>_loadSvgSourceUsingString</code>.</p>
+     */
+    external _loadSvgSourceUsingDataUri : dataUri::string => unit = "" [@@bs.send.pipe : t];
+    /*
+     <p>Loads an SVG string from <code>imageUrl</code> using XHR and then calls <code>_loadSvgSourceUsingString</code>.</p>
+     */
+    external _loadSvgSourceUsingXhr : unit = "" [@@bs.send.pipe : t];
+    /*
+     <p>Loads texture using an SVG string. The original SVG Image is stored as <code>origSource</code> and the
+     created canvas is the new <code>source</code>. The SVG is scaled using <code>sourceScale</code>. Called by
+     <code>_loadSvgSourceUsingXhr</code> or <code>_loadSvgSourceUsingDataUri</code>.</p>
+     */
+    external _loadSvgSourceUsingString : svgString::string => unit = "" [@@bs.send.pipe : t];
+    /*
+     Frees the texture from WebGL memory without destroying this texture object.
+     This means you can still use the texture later which will upload it to GPU
+     memory again.
+     */
+    external dispose : unit = "" [@@bs.send.pipe : t];
+    /*
+     Changes the source image of the texture.
+     The original source must be an Image element.
+     */
+    external updateSourceImage : newSrc::string => unit = "" [@@bs.send.pipe : t];
   };
   module BaseTexture = {
     /*
@@ -3859,6 +5465,71 @@ module Impl (T: TYPES) => {
      BaseTexture is added directly to the BaseTextureCache array.
      */
     external setTextureCacheIds : t => array string => unit = "textureCacheIds" [@@bs.set];
+    /*
+     Updates the texture on all the webgl renderers, this also assumes the src has changed.
+     */
+    external update : unit = "" [@@bs.send.pipe : t];
+    /*
+     Update dimensions from real values
+     */
+    external _updateDimensions : unit = "" [@@bs.send.pipe : t];
+    /*
+     Load a source.
+
+     <p>If the source is not-immediately-available, such as an image that needs to be
+     downloaded, then the 'loaded' or 'error' event will be dispatched in the future
+     and <code>hasLoaded</code> will remain false after this call.</p>
+     <p>The logic state after calling <code>loadSource</code> directly or indirectly (eg. <code>fromImage</code>, <code>new BaseTexture</code>) is:</p>
+     <pre class="prettyprint source"><code>if (texture.hasLoaded) {
+        // texture ready for use
+     } else if (texture.isLoading) {
+        // listen to 'loaded' and/or 'error' events on texture
+     } else {
+        // not loading, not going to load UNLESS the source is reloaded
+        // (it may still make sense to listen to the events)
+     }</code></pre>
+     */
+    external loadSource :
+      source::unit /* unknown js type: HTMLImageElement|HTMLCanvasElement */ => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Updates type of the source image.
+     */
+    external _updateImageType : unit = "" [@@bs.send.pipe : t];
+    /*
+     <p>Checks if <code>source</code> is an SVG image and whether it's loaded via a URL or a data URI. Then calls
+     <code>_loadSvgSourceUsingDataUri</code> or <code>_loadSvgSourceUsingXhr</code>.</p>
+     */
+    external _loadSvgSource : unit = "" [@@bs.send.pipe : t];
+    /*
+     <p>Reads an SVG string from data URI and then calls <code>_loadSvgSourceUsingString</code>.</p>
+     */
+    external _loadSvgSourceUsingDataUri : dataUri::string => unit = "" [@@bs.send.pipe : t];
+    /*
+     <p>Loads an SVG string from <code>imageUrl</code> using XHR and then calls <code>_loadSvgSourceUsingString</code>.</p>
+     */
+    external _loadSvgSourceUsingXhr : unit = "" [@@bs.send.pipe : t];
+    /*
+     <p>Loads texture using an SVG string. The original SVG Image is stored as <code>origSource</code> and the
+     created canvas is the new <code>source</code>. The SVG is scaled using <code>sourceScale</code>. Called by
+     <code>_loadSvgSourceUsingXhr</code> or <code>_loadSvgSourceUsingDataUri</code>.</p>
+     */
+    external _loadSvgSourceUsingString : svgString::string => unit = "" [@@bs.send.pipe : t];
+    /*
+     Destroys this base texture
+     */
+    external destroy : unit = "" [@@bs.send.pipe : t];
+    /*
+     Frees the texture from WebGL memory without destroying this texture object.
+     This means you can still use the texture later which will upload it to GPU
+     memory again.
+     */
+    external dispose : unit = "" [@@bs.send.pipe : t];
+    /*
+     Changes the source image of the texture.
+     The original source must be an Image element.
+     */
+    external updateSourceImage : newSrc::string => unit = "" [@@bs.send.pipe : t];
   };
   module RenderTexture = {
     /*
@@ -4000,6 +5671,27 @@ module Impl (T: TYPES) => {
      The height of the Texture in pixels.
      */
     external setHeight : t => float => unit = "height" [@@bs.set];
+    /*
+     Resizes the RenderTexture.
+     */
+    external resize : width::float => height::float => doNotResizeBaseTexture::Js.boolean => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Updates this texture on the gpu.
+     */
+    external update : unit = "" [@@bs.send.pipe : t];
+    /*
+     Destroys this texture
+     */
+    external destroy : destroyBase::Js.boolean? => unit = "" [@@bs.send.pipe : t];
+    /*
+     Creates a new texture object that acts the same as this one.
+     */
+    external clone : T.texture = "" [@@bs.send.pipe : t];
+    /*
+     Updates the internal WebGL UV cache.
+     */
+    external _updateUvs : unit = "" [@@bs.send.pipe : t];
   };
   module Spritesheet = {
     /*
@@ -4046,6 +5738,16 @@ module Impl (T: TYPES) => {
      The resolution of the spritesheet.
      */
     external setResolution : t => float => unit = "resolution" [@@bs.set];
+    /*
+     Parser spritesheet from loaded data. This is done asynchronously
+     to prevent creating too many Texture within a single process.
+     */
+    external parse : callback::unit /* unknown js type: function */ => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Destroy Spritesheet and don't use after this.
+     */
+    external destroy : destroyBase::Js.boolean? => unit = "" [@@bs.send.pipe : t];
   };
   module Texture = {
     /*
@@ -4193,6 +5895,22 @@ module Impl (T: TYPES) => {
      The height of the Texture in pixels.
      */
     external setHeight : t => float => unit = "height" [@@bs.set];
+    /*
+     Updates this texture on the gpu.
+     */
+    external update : unit = "" [@@bs.send.pipe : t];
+    /*
+     Destroys this texture
+     */
+    external destroy : destroyBase::Js.boolean? => unit = "" [@@bs.send.pipe : t];
+    /*
+     Creates a new texture object that acts the same as this one.
+     */
+    external clone : T.texture = "" [@@bs.send.pipe : t];
+    /*
+     Updates the internal WebGL UV cache.
+     */
+    external _updateUvs : unit = "" [@@bs.send.pipe : t];
   };
   module VideoBaseTexture = {
     /*
@@ -4353,6 +6071,71 @@ module Impl (T: TYPES) => {
      BaseTexture is added directly to the BaseTextureCache array.
      */
     external setTextureCacheIds : t => array string => unit = "textureCacheIds" [@@bs.set];
+    /*
+     Destroys this texture
+     */
+    external destroy : unit = "" [@@bs.send.pipe : t];
+    /*
+     Updates the texture on all the webgl renderers, this also assumes the src has changed.
+     */
+    external update : unit = "" [@@bs.send.pipe : t];
+    /*
+     Update dimensions from real values
+     */
+    external _updateDimensions : unit = "" [@@bs.send.pipe : t];
+    /*
+     Load a source.
+
+     <p>If the source is not-immediately-available, such as an image that needs to be
+     downloaded, then the 'loaded' or 'error' event will be dispatched in the future
+     and <code>hasLoaded</code> will remain false after this call.</p>
+     <p>The logic state after calling <code>loadSource</code> directly or indirectly (eg. <code>fromImage</code>, <code>new BaseTexture</code>) is:</p>
+     <pre class="prettyprint source"><code>if (texture.hasLoaded) {
+        // texture ready for use
+     } else if (texture.isLoading) {
+        // listen to 'loaded' and/or 'error' events on texture
+     } else {
+        // not loading, not going to load UNLESS the source is reloaded
+        // (it may still make sense to listen to the events)
+     }</code></pre>
+     */
+    external loadSource :
+      source::unit /* unknown js type: HTMLImageElement|HTMLCanvasElement */ => unit =
+      "" [@@bs.send.pipe : t];
+    /*
+     Updates type of the source image.
+     */
+    external _updateImageType : unit = "" [@@bs.send.pipe : t];
+    /*
+     <p>Checks if <code>source</code> is an SVG image and whether it's loaded via a URL or a data URI. Then calls
+     <code>_loadSvgSourceUsingDataUri</code> or <code>_loadSvgSourceUsingXhr</code>.</p>
+     */
+    external _loadSvgSource : unit = "" [@@bs.send.pipe : t];
+    /*
+     <p>Reads an SVG string from data URI and then calls <code>_loadSvgSourceUsingString</code>.</p>
+     */
+    external _loadSvgSourceUsingDataUri : dataUri::string => unit = "" [@@bs.send.pipe : t];
+    /*
+     <p>Loads an SVG string from <code>imageUrl</code> using XHR and then calls <code>_loadSvgSourceUsingString</code>.</p>
+     */
+    external _loadSvgSourceUsingXhr : unit = "" [@@bs.send.pipe : t];
+    /*
+     <p>Loads texture using an SVG string. The original SVG Image is stored as <code>origSource</code> and the
+     created canvas is the new <code>source</code>. The SVG is scaled using <code>sourceScale</code>. Called by
+     <code>_loadSvgSourceUsingXhr</code> or <code>_loadSvgSourceUsingDataUri</code>.</p>
+     */
+    external _loadSvgSourceUsingString : svgString::string => unit = "" [@@bs.send.pipe : t];
+    /*
+     Frees the texture from WebGL memory without destroying this texture object.
+     This means you can still use the texture later which will upload it to GPU
+     memory again.
+     */
+    external dispose : unit = "" [@@bs.send.pipe : t];
+    /*
+     Changes the source image of the texture.
+     The original source must be an Image element.
+     */
+    external updateSourceImage : newSrc::string => unit = "" [@@bs.send.pipe : t];
   };
   module Ticker = {
     module Ticker = {
@@ -4478,6 +6261,61 @@ module Impl (T: TYPES) => {
        <code>0</code> and <code>PIXI.settings.TARGET_FPMS * 1000</code>.</p>
        */
       external setMinFPS : t => float => unit = "minFPS" [@@bs.set];
+      /*
+       Register a handler for tick events. Calls continuously unless
+       it is removed or the ticker is stopped.
+       */
+      external add :
+        fn::unit /* unknown js type: function */ =>
+        context::unit /* unknown js type: function */? =>
+        priority::float? =>
+        T.ticker =
+        "" [@@bs.send.pipe : t];
+      /*
+       Add a handler for the tick event which is only execute once.
+       */
+      external addOnce :
+        fn::unit /* unknown js type: function */ =>
+        context::unit /* unknown js type: function */? =>
+        priority::float? =>
+        T.ticker =
+        "" [@@bs.send.pipe : t];
+      /*
+       Removes any handlers matching the function and context parameters.
+       If no handlers are left after removing, then it cancels the animation frame.
+       */
+      external remove :
+        fn::unit /* unknown js type: function */ =>
+        context::unit /* unknown js type: function */? =>
+        T.ticker =
+        "" [@@bs.send.pipe : t];
+      /*
+       Starts the ticker. If the ticker has listeners
+       a new animation frame is requested at this point.
+       */
+      external start : unit = "" [@@bs.send.pipe : t];
+      /*
+       Stops the ticker. If the ticker has requested
+       an animation frame it is canceled at this point.
+       */
+      external stop : unit = "" [@@bs.send.pipe : t];
+      /*
+       Destroy the ticker and don't use after this. Calling
+       this method removes all references to internal events.
+       */
+      external destroy : unit = "" [@@bs.send.pipe : t];
+      /*
+       Triggers an update. An update entails setting the
+       current {@link PIXI.ticker.Ticker#elapsedMS},
+       the current {@link PIXI.ticker.Ticker#deltaTime},
+       invoking all listeners with current deltaTime,
+       and then finally setting {@link PIXI.ticker.Ticker#lastTime}
+       with the value of currentTime that was provided.
+       This method will be called automatically by animation
+       frame callbacks if the ticker instance has been started
+       and listeners are added.
+       */
+      external update : currentTime::float? => unit = "" [@@bs.send.pipe : t];
     };
   };
   module Utils = {
@@ -4497,6 +6335,36 @@ module Impl (T: TYPES) => {
       type t = T.canvasExtract;
       external create : renderer::T.canvasRenderer => unit => t =
         "CanvasExtract" [@@bs.new] [@@bs.scope "extract"] [@@bs.module ("pixi.js", "PIXI")];
+      /*
+       Will return a HTML Image of the target
+       */
+      external image :
+        target::unit /* unknown js type: PIXI.DisplayObject|PIXI.RenderTexture */ => unit /* unknown js type: HTMLImageElement */ =
+        "" [@@bs.send.pipe : t];
+      /*
+       <p>Will return a a base64 encoded string of this target. It works by calling
+        <code>CanvasExtract.getCanvas</code> and then running toDataURL on that.</p>
+       */
+      external base64 :
+        target::unit /* unknown js type: PIXI.DisplayObject|PIXI.RenderTexture */ => string =
+        "" [@@bs.send.pipe : t];
+      /*
+       Creates a Canvas element, renders this target to it and then returns it.
+       */
+      external canvas :
+        target::unit /* unknown js type: PIXI.DisplayObject|PIXI.RenderTexture */ => Dom.element =
+        "" [@@bs.send.pipe : t];
+      /*
+       Will return a one-dimensional array containing the pixel data of the entire texture in RGBA
+       order, with integer values between 0 and 255 (included).
+       */
+      external pixels :
+        target::unit /* unknown js type: PIXI.DisplayObject|PIXI.RenderTexture */ => unit /* unknown js type: Uint8ClampedArray */ =
+        "" [@@bs.send.pipe : t];
+      /*
+       Destroys the extract
+       */
+      external destroy : unit = "" [@@bs.send.pipe : t];
     };
     module WebGLExtract = {
       /*
@@ -4507,6 +6375,36 @@ module Impl (T: TYPES) => {
       type t = T.webGLExtract;
       external create : renderer::T.webGLRenderer => unit => t =
         "WebGLExtract" [@@bs.new] [@@bs.scope "extract"] [@@bs.module ("pixi.js", "PIXI")];
+      /*
+       Will return a HTML Image of the target
+       */
+      external image :
+        target::unit /* unknown js type: PIXI.DisplayObject|PIXI.RenderTexture */ => unit /* unknown js type: HTMLImageElement */ =
+        "" [@@bs.send.pipe : t];
+      /*
+       <p>Will return a a base64 encoded string of this target. It works by calling
+        <code>WebGLExtract.getCanvas</code> and then running toDataURL on that.</p>
+       */
+      external base64 :
+        target::unit /* unknown js type: PIXI.DisplayObject|PIXI.RenderTexture */ => string =
+        "" [@@bs.send.pipe : t];
+      /*
+       Creates a Canvas element, renders this target to it and then returns it.
+       */
+      external canvas :
+        target::unit /* unknown js type: PIXI.DisplayObject|PIXI.RenderTexture */ => Dom.element =
+        "" [@@bs.send.pipe : t];
+      /*
+       Will return a one-dimensional array containing the pixel data of the entire texture in RGBA
+       order, with integer values between 0 and 255 (included).
+       */
+      external pixels :
+        target::unit /* unknown js type: PIXI.DisplayObject|PIXI.RenderTexture */ => unit /* unknown js type: Uint8ClampedArray */ =
+        "" [@@bs.send.pipe : t];
+      /*
+       Destroys the extract
+       */
+      external destroy : unit = "" [@@bs.send.pipe : t];
     };
   };
   module Extras = {
@@ -4938,6 +6836,147 @@ module Impl (T: TYPES) => {
        is hovered over the displayObject.
        */
       external setCursor : t => string => unit = "cursor" [@@bs.set];
+      /*
+       Stops the AnimatedSprite
+       */
+      external stop : unit = "" [@@bs.send.pipe : t];
+      /*
+       Plays the AnimatedSprite
+       */
+      external play : unit = "" [@@bs.send.pipe : t];
+      /*
+       Stops the AnimatedSprite and goes to a specific frame
+       */
+      external gotoAndStop : frameNumber::float => unit = "" [@@bs.send.pipe : t];
+      /*
+       Goes to a specific frame and begins playing the AnimatedSprite
+       */
+      external gotoAndPlay : frameNumber::float => unit = "" [@@bs.send.pipe : t];
+      /*
+       Stops the AnimatedSprite and destroys it
+       */
+      external destroy : options::unit /* unknown js type: object|boolean */? => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       calculates worldTransform * vertices, store it in vertexData
+       */
+      external calculateVertices : unit = "" [@@bs.send.pipe : t];
+      /*
+       calculates worldTransform * vertices for a non texture with a trim. store it in vertexTrimmedData
+       This is used to ensure that the true width and height of a trimmed texture is respected
+       */
+      external calculateTrimmedVertices : unit = "" [@@bs.send.pipe : t];
+      /*
+       Gets the local bounds of the sprite object.
+       */
+      external getLocalBounds : rect::T.rectangle => T.rectangle = "" [@@bs.send.pipe : t];
+      /*
+       Tests if a point is inside this sprite
+       */
+      external containsPoint : point::T.point => Js.boolean = "" [@@bs.send.pipe : t];
+      /*
+       Adds one or more children to the container.
+
+       <p>Multiple items can be added like so: <code>myContainer.addChild(thingOne, thingTwo, thingThree)</code></p>
+       */
+      external addChild : child::T.displayObject => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Adds a child to the container at a specified index. If the index is out of bounds an error will be thrown
+       */
+      external addChildAt : child::T.displayObject => index::float => T.displayObject =
+        "" [@@bs.send.pipe : t];
+      /*
+       Swaps the position of 2 Display Objects within this container.
+       */
+      external swapChildren : child::T.displayObject => child2::T.displayObject => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       Returns the index position of a child DisplayObject instance
+       */
+      external getChildIndex : child::T.displayObject => float = "" [@@bs.send.pipe : t];
+      /*
+       Changes the position of an existing child in the display object container
+       */
+      external setChildIndex : child::T.displayObject => index::float => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       Returns the child at the specified index
+       */
+      external getChildAt : index::float => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Removes one or more children from the container.
+       */
+      external removeChild : child::T.displayObject => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Removes a child from the specified index position.
+       */
+      external removeChildAt : index::float => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Removes all children from this container that are within the begin and end indexes.
+       */
+      external removeChildren : beginIndex::float? => endIndex::float? => array T.displayObject =
+        "" [@@bs.send.pipe : t];
+      /*
+       Updates the transform on all children of this container for rendering
+       */
+      external updateTransform : unit = "" [@@bs.send.pipe : t];
+      /*
+       Recalculates the bounds of the container.
+       */
+      external calculateBounds : unit = "" [@@bs.send.pipe : t];
+      /*
+       Renders the object using the WebGL renderer
+       */
+      external renderWebGL : renderer::T.webGLRenderer => unit = "" [@@bs.send.pipe : t];
+      /*
+       Renders the object using the Canvas renderer
+       */
+      external renderCanvas : renderer::T.canvasRenderer => unit = "" [@@bs.send.pipe : t];
+      /*
+       recursively updates transform of all objects from the root to this one
+       internal function for toLocal()
+       */
+      external _recursivePostUpdateTransform : unit = "" [@@bs.send.pipe : t];
+      /*
+       Retrieves the bounds of the displayObject as a rectangle object.
+       */
+      external getBounds : skipUpdate::Js.boolean => rect::T.rectangle => T.rectangle =
+        "" [@@bs.send.pipe : t];
+      /*
+       Calculates the global position of the display object
+       */
+      external toGlobal :
+        position::T.point => point::T.point? => skipUpdate::Js.boolean? => T.point =
+        "" [@@bs.send.pipe : t];
+      /*
+       Calculates the local position of the display object relative to another point
+       */
+      external toLocal :
+        position::T.point =>
+        from::T.displayObject? =>
+        point::T.point? =>
+        skipUpdate::Js.boolean? =>
+        T.point =
+        "" [@@bs.send.pipe : t];
+      /*
+       Set the parent Container of this DisplayObject
+       */
+      external setParent : container::T.container => T.container = "" [@@bs.send.pipe : t];
+      /*
+       Convenience function to set the position, scale, skew and pivot at once.
+       */
+      external setTransform :
+        x::float? =>
+        y::float? =>
+        scaleX::float? =>
+        scaleY::float? =>
+        rotation::float? =>
+        skewX::float? =>
+        skewY::float? =>
+        pivotX::float? =>
+        pivotY::float? =>
+        T.displayObject =
+        "" [@@bs.send.pipe : t];
     };
     module BitmapText = {
       /*
@@ -5333,6 +7372,120 @@ module Impl (T: TYPES) => {
        is hovered over the displayObject.
        */
       external setCursor : t => string => unit = "cursor" [@@bs.set];
+      /*
+       Validates text before calling parent's getLocalBounds
+       */
+      external getLocalBounds : T.rectangle = "" [@@bs.send.pipe : t];
+      /*
+       Adds one or more children to the container.
+
+       <p>Multiple items can be added like so: <code>myContainer.addChild(thingOne, thingTwo, thingThree)</code></p>
+       */
+      external addChild : child::T.displayObject => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Adds a child to the container at a specified index. If the index is out of bounds an error will be thrown
+       */
+      external addChildAt : child::T.displayObject => index::float => T.displayObject =
+        "" [@@bs.send.pipe : t];
+      /*
+       Swaps the position of 2 Display Objects within this container.
+       */
+      external swapChildren : child::T.displayObject => child2::T.displayObject => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       Returns the index position of a child DisplayObject instance
+       */
+      external getChildIndex : child::T.displayObject => float = "" [@@bs.send.pipe : t];
+      /*
+       Changes the position of an existing child in the display object container
+       */
+      external setChildIndex : child::T.displayObject => index::float => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       Returns the child at the specified index
+       */
+      external getChildAt : index::float => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Removes one or more children from the container.
+       */
+      external removeChild : child::T.displayObject => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Removes a child from the specified index position.
+       */
+      external removeChildAt : index::float => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Removes all children from this container that are within the begin and end indexes.
+       */
+      external removeChildren : beginIndex::float? => endIndex::float? => array T.displayObject =
+        "" [@@bs.send.pipe : t];
+      /*
+       Recalculates the bounds of the container.
+       */
+      external calculateBounds : unit = "" [@@bs.send.pipe : t];
+      /*
+       Recalculates the bounds of the object. Override this to
+       calculate the bounds of the specific object (not including children).
+       */
+      external _calculateBounds : unit = "" [@@bs.send.pipe : t];
+      /*
+       Renders the object using the WebGL renderer
+       */
+      external renderWebGL : renderer::T.webGLRenderer => unit = "" [@@bs.send.pipe : t];
+      /*
+       Renders the object using the Canvas renderer
+       */
+      external renderCanvas : renderer::T.canvasRenderer => unit = "" [@@bs.send.pipe : t];
+      /*
+       <p>Removes all internal references and listeners as well as removes children from the display list.
+       Do not use a Container after calling <code>destroy</code>.</p>
+       */
+      external destroy : options::unit /* unknown js type: object|boolean */? => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       recursively updates transform of all objects from the root to this one
+       internal function for toLocal()
+       */
+      external _recursivePostUpdateTransform : unit = "" [@@bs.send.pipe : t];
+      /*
+       Retrieves the bounds of the displayObject as a rectangle object.
+       */
+      external getBounds : skipUpdate::Js.boolean => rect::T.rectangle => T.rectangle =
+        "" [@@bs.send.pipe : t];
+      /*
+       Calculates the global position of the display object
+       */
+      external toGlobal :
+        position::T.point => point::T.point? => skipUpdate::Js.boolean? => T.point =
+        "" [@@bs.send.pipe : t];
+      /*
+       Calculates the local position of the display object relative to another point
+       */
+      external toLocal :
+        position::T.point =>
+        from::T.displayObject? =>
+        point::T.point? =>
+        skipUpdate::Js.boolean? =>
+        T.point =
+        "" [@@bs.send.pipe : t];
+      /*
+       Set the parent Container of this DisplayObject
+       */
+      external setParent : container::T.container => T.container = "" [@@bs.send.pipe : t];
+      /*
+       Convenience function to set the position, scale, skew and pivot at once.
+       */
+      external setTransform :
+        x::float? =>
+        y::float? =>
+        scaleX::float? =>
+        scaleY::float? =>
+        rotation::float? =>
+        skewX::float? =>
+        skewY::float? =>
+        pivotX::float? =>
+        pivotY::float? =>
+        T.displayObject =
+        "" [@@bs.send.pipe : t];
     };
     module TextureTransform = {
       /*
@@ -5373,6 +7526,18 @@ module Impl (T: TYPES) => {
        texture property
        */
       external setTexture : t => T.texture => unit = "texture" [@@bs.set];
+      /*
+       Multiplies uvs array to transform
+       */
+      external multiplyUvs :
+        uvs::Js_typed_array.Float32Array.t =>
+        out::Js_typed_array.Float32Array.t? =>
+        Js_typed_array.Float32Array.t =
+        "" [@@bs.send.pipe : t];
+      /*
+       updates matrices if texture was changed
+       */
+      external update : forceUpdate::Js.boolean => Js.boolean = "" [@@bs.send.pipe : t];
     };
     module TilingSprite = {
       /*
@@ -5774,6 +7939,131 @@ module Impl (T: TYPES) => {
        is hovered over the displayObject.
        */
       external setCursor : t => string => unit = "cursor" [@@bs.set];
+      /*
+       Gets the local bounds of the sprite object.
+       */
+      external getLocalBounds : rect::T.rectangle => T.rectangle = "" [@@bs.send.pipe : t];
+      /*
+       Checks if a point is inside this tiling sprite.
+       */
+      external containsPoint : point::T.point => Js.boolean = "" [@@bs.send.pipe : t];
+      /*
+       Destroys this sprite and optionally its texture and children
+       */
+      external destroy : options::unit /* unknown js type: object|boolean */? => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       calculates worldTransform * vertices, store it in vertexData
+       */
+      external calculateVertices : unit = "" [@@bs.send.pipe : t];
+      /*
+       calculates worldTransform * vertices for a non texture with a trim. store it in vertexTrimmedData
+       This is used to ensure that the true width and height of a trimmed texture is respected
+       */
+      external calculateTrimmedVertices : unit = "" [@@bs.send.pipe : t];
+      /*
+       Adds one or more children to the container.
+
+       <p>Multiple items can be added like so: <code>myContainer.addChild(thingOne, thingTwo, thingThree)</code></p>
+       */
+      external addChild : child::T.displayObject => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Adds a child to the container at a specified index. If the index is out of bounds an error will be thrown
+       */
+      external addChildAt : child::T.displayObject => index::float => T.displayObject =
+        "" [@@bs.send.pipe : t];
+      /*
+       Swaps the position of 2 Display Objects within this container.
+       */
+      external swapChildren : child::T.displayObject => child2::T.displayObject => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       Returns the index position of a child DisplayObject instance
+       */
+      external getChildIndex : child::T.displayObject => float = "" [@@bs.send.pipe : t];
+      /*
+       Changes the position of an existing child in the display object container
+       */
+      external setChildIndex : child::T.displayObject => index::float => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       Returns the child at the specified index
+       */
+      external getChildAt : index::float => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Removes one or more children from the container.
+       */
+      external removeChild : child::T.displayObject => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Removes a child from the specified index position.
+       */
+      external removeChildAt : index::float => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Removes all children from this container that are within the begin and end indexes.
+       */
+      external removeChildren : beginIndex::float? => endIndex::float? => array T.displayObject =
+        "" [@@bs.send.pipe : t];
+      /*
+       Updates the transform on all children of this container for rendering
+       */
+      external updateTransform : unit = "" [@@bs.send.pipe : t];
+      /*
+       Recalculates the bounds of the container.
+       */
+      external calculateBounds : unit = "" [@@bs.send.pipe : t];
+      /*
+       Renders the object using the WebGL renderer
+       */
+      external renderWebGL : renderer::T.webGLRenderer => unit = "" [@@bs.send.pipe : t];
+      /*
+       Renders the object using the Canvas renderer
+       */
+      external renderCanvas : renderer::T.canvasRenderer => unit = "" [@@bs.send.pipe : t];
+      /*
+       recursively updates transform of all objects from the root to this one
+       internal function for toLocal()
+       */
+      external _recursivePostUpdateTransform : unit = "" [@@bs.send.pipe : t];
+      /*
+       Retrieves the bounds of the displayObject as a rectangle object.
+       */
+      external getBounds : skipUpdate::Js.boolean => rect::T.rectangle => T.rectangle =
+        "" [@@bs.send.pipe : t];
+      /*
+       Calculates the global position of the display object
+       */
+      external toGlobal :
+        position::T.point => point::T.point? => skipUpdate::Js.boolean? => T.point =
+        "" [@@bs.send.pipe : t];
+      /*
+       Calculates the local position of the display object relative to another point
+       */
+      external toLocal :
+        position::T.point =>
+        from::T.displayObject? =>
+        point::T.point? =>
+        skipUpdate::Js.boolean? =>
+        T.point =
+        "" [@@bs.send.pipe : t];
+      /*
+       Set the parent Container of this DisplayObject
+       */
+      external setParent : container::T.container => T.container = "" [@@bs.send.pipe : t];
+      /*
+       Convenience function to set the position, scale, skew and pivot at once.
+       */
+      external setTransform :
+        x::float? =>
+        y::float? =>
+        scaleX::float? =>
+        scaleY::float? =>
+        rotation::float? =>
+        skewX::float? =>
+        skewY::float? =>
+        pivotX::float? =>
+        pivotY::float? =>
+        T.displayObject =
+        "" [@@bs.send.pipe : t];
     };
     module TilingSpriteRenderer = {
       /*
@@ -5790,6 +8080,23 @@ module Impl (T: TYPES) => {
        The renderer this manager works for.
        */
       external setRenderer : t => T.webGLRenderer => unit = "renderer" [@@bs.set];
+      external render : ts::T.tilingSprite => unit = "" [@@bs.send.pipe : t];
+      /*
+       Starts the renderer and sets the shader
+       */
+      external start : unit = "" [@@bs.send.pipe : t];
+      /*
+       Stops the renderer
+       */
+      external stop : unit = "" [@@bs.send.pipe : t];
+      /*
+       Stub method for rendering content and emptying the current batch.
+       */
+      external flush : unit = "" [@@bs.send.pipe : t];
+      /*
+       Generic destroy methods to be overridden by the subclass
+       */
+      external destroy : unit = "" [@@bs.send.pipe : t];
     };
   };
   module Filters = {
@@ -5899,6 +8206,12 @@ module Impl (T: TYPES) => {
        Switch it off if it does not work for specific shader.
        */
       external setAutoFit : t => Js.boolean => unit = "autoFit" [@@bs.set];
+      /*
+       Applies the filter.
+       */
+      external apply :
+        filterManager::T.filterManager => input::T.renderTarget => output::T.renderTarget => unit =
+        "" [@@bs.send.pipe : t];
     };
     module BlurXFilter = {
       /*
@@ -5991,6 +8304,16 @@ module Impl (T: TYPES) => {
        Switch it off if it does not work for specific shader.
        */
       external setAutoFit : t => Js.boolean => unit = "autoFit" [@@bs.set];
+      /*
+       Applies the filter.
+       */
+      external apply :
+        filterManager::T.filterManager =>
+        input::T.renderTarget =>
+        output::T.renderTarget =>
+        clear::Js.boolean =>
+        unit =
+        "" [@@bs.send.pipe : t];
     };
     module BlurYFilter = {
       /*
@@ -6083,6 +8406,16 @@ module Impl (T: TYPES) => {
        Switch it off if it does not work for specific shader.
        */
       external setAutoFit : t => Js.boolean => unit = "autoFit" [@@bs.set];
+      /*
+       Applies the filter.
+       */
+      external apply :
+        filterManager::T.filterManager =>
+        input::T.renderTarget =>
+        output::T.renderTarget =>
+        clear::Js.boolean =>
+        unit =
+        "" [@@bs.send.pipe : t];
     };
     module ColorMatrixFilter = {
       /*
@@ -6186,6 +8519,118 @@ module Impl (T: TYPES) => {
        Switch it off if it does not work for specific shader.
        */
       external setAutoFit : t => Js.boolean => unit = "autoFit" [@@bs.set];
+      /*
+       Transforms current matrix and set the new one
+       */
+      external _loadMatrix : matrix::array float => multiply::Js.boolean => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       Adjusts brightness
+       */
+      external brightness : b::float => multiply::Js.boolean => unit = "" [@@bs.send.pipe : t];
+      /*
+       Set the matrices in grey scales
+       */
+      external greyscale : scale::float => multiply::Js.boolean => unit = "" [@@bs.send.pipe : t];
+      /*
+       Set the black and white matrice.
+       */
+      external blackAndWhite : multiply::Js.boolean => unit = "" [@@bs.send.pipe : t];
+      /*
+       Set the hue property of the color
+       */
+      external hue : rotation::float => multiply::Js.boolean => unit = "" [@@bs.send.pipe : t];
+      /*
+       Set the contrast matrix, increase the separation between dark and bright
+       Increase contrast : shadows darker and highlights brighter
+       Decrease contrast : bring the shadows up and the highlights down
+       */
+      external contrast : amount::float => multiply::Js.boolean => unit = "" [@@bs.send.pipe : t];
+      /*
+       Set the saturation matrix, increase the separation between colors
+       Increase saturation : increase contrast, brightness, and sharpness
+       */
+      external saturate : amount::float => multiply::Js.boolean => unit = "" [@@bs.send.pipe : t];
+      /*
+       Desaturate image (remove color)
+
+       Call the saturate function
+       */
+      external desaturate : unit = "" [@@bs.send.pipe : t];
+      /*
+       Negative image (inverse of classic rgb matrix)
+       */
+      external negative : multiply::Js.boolean => unit = "" [@@bs.send.pipe : t];
+      /*
+       Sepia image
+       */
+      external sepia : multiply::Js.boolean => unit = "" [@@bs.send.pipe : t];
+      /*
+       Color motion picture process invented in 1916 (thanks Dominic Szablewski)
+       */
+      external technicolor : multiply::Js.boolean => unit = "" [@@bs.send.pipe : t];
+      /*
+       Polaroid filter
+       */
+      external polaroid : multiply::Js.boolean => unit = "" [@@bs.send.pipe : t];
+      /*
+       Filter who transforms : Red -&gt; Blue and Blue -&gt; Red
+       */
+      external toBGR : multiply::Js.boolean => unit = "" [@@bs.send.pipe : t];
+      /*
+       Color reversal film introduced by Eastman Kodak in 1935. (thanks Dominic Szablewski)
+       */
+      external kodachrome : multiply::Js.boolean => unit = "" [@@bs.send.pipe : t];
+      /*
+       Brown delicious browni filter (thanks Dominic Szablewski)
+       */
+      external browni : multiply::Js.boolean => unit = "" [@@bs.send.pipe : t];
+      /*
+       Vintage filter (thanks Dominic Szablewski)
+       */
+      external vintage : multiply::Js.boolean => unit = "" [@@bs.send.pipe : t];
+      /*
+       We don't know exactly what it does, kind of gradient map, but funny to play with!
+       */
+      external colorTone :
+        desaturation::float =>
+        toned::float =>
+        lightColor::string =>
+        darkColor::string =>
+        multiply::Js.boolean =>
+        unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       Night effect
+       */
+      external night : intensity::float => multiply::Js.boolean => unit = "" [@@bs.send.pipe : t];
+      /*
+       Predator effect
+
+       Erase the current matrix by setting a new indepent one
+       */
+      external predator : amount::float => multiply::Js.boolean => unit = "" [@@bs.send.pipe : t];
+      /*
+       LSD effect
+
+       Multiply the current matrix
+       */
+      external lsd : multiply::Js.boolean => unit = "" [@@bs.send.pipe : t];
+      /*
+       Erase the current matrix by setting the default one
+       */
+      external reset : unit = "" [@@bs.send.pipe : t];
+      /*
+       Applies the filter
+       */
+      external apply :
+        filterManager::T.filterManager =>
+        input::T.renderTarget =>
+        output::T.renderTarget =>
+        clear::Js.boolean =>
+        currentState::unit /* unknown js type: object */? =>
+        unit =
+        "" [@@bs.send.pipe : t];
     };
     module DisplacementFilter = {
       /*
@@ -6271,6 +8716,12 @@ module Impl (T: TYPES) => {
        Switch it off if it does not work for specific shader.
        */
       external setAutoFit : t => Js.boolean => unit = "autoFit" [@@bs.set];
+      /*
+       Applies the filter.
+       */
+      external apply :
+        filterManager::T.filterManager => input::T.renderTarget => output::T.renderTarget => unit =
+        "" [@@bs.send.pipe : t];
     };
     module FXAAFilter = {
       /*
@@ -6346,6 +8797,17 @@ module Impl (T: TYPES) => {
        Switch it off if it does not work for specific shader.
        */
       external setAutoFit : t => Js.boolean => unit = "autoFit" [@@bs.set];
+      /*
+       Applies the filter
+       */
+      external apply :
+        filterManager::T.filterManager =>
+        input::T.renderTarget =>
+        output::T.renderTarget =>
+        clear::Js.boolean =>
+        currentState::unit /* unknown js type: object */? =>
+        unit =
+        "" [@@bs.send.pipe : t];
     };
     module NoiseFilter = {
       /*
@@ -6435,6 +8897,17 @@ module Impl (T: TYPES) => {
        Switch it off if it does not work for specific shader.
        */
       external setAutoFit : t => Js.boolean => unit = "autoFit" [@@bs.set];
+      /*
+       Applies the filter
+       */
+      external apply :
+        filterManager::T.filterManager =>
+        input::T.renderTarget =>
+        output::T.renderTarget =>
+        clear::Js.boolean =>
+        currentState::unit /* unknown js type: object */? =>
+        unit =
+        "" [@@bs.send.pipe : t];
     };
     module VoidFilter = {
       /*
@@ -6508,6 +8981,17 @@ module Impl (T: TYPES) => {
        Switch it off if it does not work for specific shader.
        */
       external setAutoFit : t => Js.boolean => unit = "autoFit" [@@bs.set];
+      /*
+       Applies the filter
+       */
+      external apply :
+        filterManager::T.filterManager =>
+        input::T.renderTarget =>
+        output::T.renderTarget =>
+        clear::Js.boolean =>
+        currentState::unit /* unknown js type: object */? =>
+        unit =
+        "" [@@bs.send.pipe : t];
     };
   };
   module Interaction = {
@@ -6660,6 +9144,12 @@ module Impl (T: TYPES) => {
        <p>The unique identifier of the pointer. It will be the same as <code>identifier</code>.</p>
        */
       external pointerId : t => float = "" [@@bs.get];
+      /*
+       This will return the local coordinates of the specified displayObject for this InteractionData
+       */
+      external getLocalPosition :
+        displayObject::T.displayObject => point::T.point? => globalPos::T.point? => T.point =
+        "" [@@bs.send.pipe : t];
     };
     module InteractionEvent = {
       /*
@@ -6710,6 +9200,10 @@ module Impl (T: TYPES) => {
        InteractionData related to this event
        */
       external setData : t => T.interactionData => unit = "data" [@@bs.set];
+      /*
+       Prevents event from reaching any objects other than the current object.
+       */
+      external stopPropagation : unit = "" [@@bs.send.pipe : t];
     };
     module InteractionManager = {
       /*
@@ -6847,6 +9341,31 @@ module Impl (T: TYPES) => {
        The current resolution / device pixel ratio.
        */
       external setResolution : t => float => unit = "resolution" [@@bs.set];
+      /*
+       Hit tests a point against the display tree, returning the first interactive object that is hit.
+       */
+      external hitTest : globalPoint::T.point => root::T.container? => T.displayObject =
+        "" [@@bs.send.pipe : t];
+      /*
+       Updates the state of interactive objects.
+       Invoked by a throttled ticker update from {@link PIXI.ticker.shared}.
+       */
+      external update : deltaTime::float => unit = "" [@@bs.send.pipe : t];
+      /*
+       Sets the current cursor mode, handling any callbacks or CSS style changes.
+       */
+      external setCursorMode : mode::string => unit = "" [@@bs.send.pipe : t];
+      /*
+       Maps x and y coords from a DOM object and maps them correctly to the pixi view. The
+       resulting value is stored in the point. This takes into account the fact that the DOM
+       element could be scaled and positioned anywhere on the screen.
+       */
+      external mapPositionToPoint : point::T.point => x::float => y::float => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       Destroys the interaction manager
+       */
+      external destroy : unit = "" [@@bs.send.pipe : t];
     };
   };
   module Loaders = {
@@ -6901,6 +9420,10 @@ module Impl (T: TYPES) => {
       type t = T.loader;
       external create : baseUrl::string? => concurrency::float? => unit => t =
         "Loader" [@@bs.new] [@@bs.scope "loaders"] [@@bs.module ("pixi.js", "PIXI")];
+      /*
+       Destroy the loader, removes references.
+       */
+      external destroy : unit = "" [@@bs.send.pipe : t];
     };
   };
   module Mesh = {
@@ -6911,9 +9434,9 @@ module Impl (T: TYPES) => {
       type t = T.mesh;
       external create :
         texture::T.texture =>
-        vertices::unit /* unknown js type: Float32Array */? =>
-        uvs::unit /* unknown js type: Float32Array */? =>
-        indices::unit /* unknown js type: Uint16Array */? =>
+        vertices::Js_typed_array.Float32Array.t? =>
+        uvs::Js_typed_array.Float32Array.t? =>
+        indices::Js_typed_array.Uint16Array.t? =>
         drawMode::float? =>
         unit =>
         t =
@@ -6921,29 +9444,27 @@ module Impl (T: TYPES) => {
       /*
        The Uvs of the Mesh
        */
-      external uvs : t => unit /* unknown js type: Float32Array */ = "" [@@bs.get];
+      external uvs : t => Js_typed_array.Float32Array.t = "" [@@bs.get];
       /*
        The Uvs of the Mesh
        */
-      external setUvs : t => unit /* unknown js type: Float32Array */ => unit = "uvs" [@@bs.set];
+      external setUvs : t => Js_typed_array.Float32Array.t => unit = "uvs" [@@bs.set];
       /*
        An array of vertices
        */
-      external vertices : t => unit /* unknown js type: Float32Array */ = "" [@@bs.get];
+      external vertices : t => Js_typed_array.Float32Array.t = "" [@@bs.get];
       /*
        An array of vertices
        */
-      external setVertices : t => unit /* unknown js type: Float32Array */ => unit =
-        "vertices" [@@bs.set];
+      external setVertices : t => Js_typed_array.Float32Array.t => unit = "vertices" [@@bs.set];
       /*
        An array containing the indices of the vertices
        */
-      external indices : t => unit /* unknown js type: Uint16Array */ = "" [@@bs.get];
+      external indices : t => Js_typed_array.Uint16Array.t = "" [@@bs.get];
       /*
        An array containing the indices of the vertices
        */
-      external setIndices : t => unit /* unknown js type: Uint16Array */ => unit =
-        "indices" [@@bs.set];
+      external setIndices : t => Js_typed_array.Uint16Array.t => unit = "indices" [@@bs.set];
       /*
        Version of mesh uvs are dirty or not
        */
@@ -7328,6 +9849,142 @@ module Impl (T: TYPES) => {
        is hovered over the displayObject.
        */
       external setCursor : t => string => unit = "cursor" [@@bs.set];
+      /*
+       multiplies uvs only if uploadUvTransform is false
+       call it after you change uvs manually
+       make sure that texture is valid
+       */
+      external multiplyUvs : unit = "" [@@bs.send.pipe : t];
+      /*
+       Refreshes uvs for generated meshes (rope, plane)
+       sometimes refreshes vertices too
+       */
+      external refresh : forceUpdate::Js.boolean? => unit = "" [@@bs.send.pipe : t];
+      /*
+       re-calculates mesh coords
+       */
+      external _refresh : unit = "" [@@bs.send.pipe : t];
+      /*
+       Returns the bounds of the mesh as a rectangle. The bounds calculation takes the worldTransform into account.
+       */
+      external _calculateBounds : unit = "" [@@bs.send.pipe : t];
+      /*
+       Tests if a point is inside this mesh. Works only for TRIANGLE_MESH
+       */
+      external containsPoint : point::T.point => Js.boolean = "" [@@bs.send.pipe : t];
+      /*
+       Adds one or more children to the container.
+
+       <p>Multiple items can be added like so: <code>myContainer.addChild(thingOne, thingTwo, thingThree)</code></p>
+       */
+      external addChild : child::T.displayObject => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Adds a child to the container at a specified index. If the index is out of bounds an error will be thrown
+       */
+      external addChildAt : child::T.displayObject => index::float => T.displayObject =
+        "" [@@bs.send.pipe : t];
+      /*
+       Swaps the position of 2 Display Objects within this container.
+       */
+      external swapChildren : child::T.displayObject => child2::T.displayObject => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       Returns the index position of a child DisplayObject instance
+       */
+      external getChildIndex : child::T.displayObject => float = "" [@@bs.send.pipe : t];
+      /*
+       Changes the position of an existing child in the display object container
+       */
+      external setChildIndex : child::T.displayObject => index::float => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       Returns the child at the specified index
+       */
+      external getChildAt : index::float => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Removes one or more children from the container.
+       */
+      external removeChild : child::T.displayObject => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Removes a child from the specified index position.
+       */
+      external removeChildAt : index::float => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Removes all children from this container that are within the begin and end indexes.
+       */
+      external removeChildren : beginIndex::float? => endIndex::float? => array T.displayObject =
+        "" [@@bs.send.pipe : t];
+      /*
+       Updates the transform on all children of this container for rendering
+       */
+      external updateTransform : unit = "" [@@bs.send.pipe : t];
+      /*
+       Recalculates the bounds of the container.
+       */
+      external calculateBounds : unit = "" [@@bs.send.pipe : t];
+      /*
+       Renders the object using the WebGL renderer
+       */
+      external renderWebGL : renderer::T.webGLRenderer => unit = "" [@@bs.send.pipe : t];
+      /*
+       Renders the object using the Canvas renderer
+       */
+      external renderCanvas : renderer::T.canvasRenderer => unit = "" [@@bs.send.pipe : t];
+      /*
+       <p>Removes all internal references and listeners as well as removes children from the display list.
+       Do not use a Container after calling <code>destroy</code>.</p>
+       */
+      external destroy : options::unit /* unknown js type: object|boolean */? => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       recursively updates transform of all objects from the root to this one
+       internal function for toLocal()
+       */
+      external _recursivePostUpdateTransform : unit = "" [@@bs.send.pipe : t];
+      /*
+       Retrieves the bounds of the displayObject as a rectangle object.
+       */
+      external getBounds : skipUpdate::Js.boolean => rect::T.rectangle => T.rectangle =
+        "" [@@bs.send.pipe : t];
+      /*
+       Retrieves the local bounds of the displayObject as a rectangle object
+       */
+      external getLocalBounds : rect::T.rectangle? => T.rectangle = "" [@@bs.send.pipe : t];
+      /*
+       Calculates the global position of the display object
+       */
+      external toGlobal :
+        position::T.point => point::T.point? => skipUpdate::Js.boolean? => T.point =
+        "" [@@bs.send.pipe : t];
+      /*
+       Calculates the local position of the display object relative to another point
+       */
+      external toLocal :
+        position::T.point =>
+        from::T.displayObject? =>
+        point::T.point? =>
+        skipUpdate::Js.boolean? =>
+        T.point =
+        "" [@@bs.send.pipe : t];
+      /*
+       Set the parent Container of this DisplayObject
+       */
+      external setParent : container::T.container => T.container = "" [@@bs.send.pipe : t];
+      /*
+       Convenience function to set the position, scale, skew and pivot at once.
+       */
+      external setTransform :
+        x::float? =>
+        y::float? =>
+        scaleX::float? =>
+        scaleY::float? =>
+        rotation::float? =>
+        skewX::float? =>
+        skewY::float? =>
+        pivotX::float? =>
+        pivotY::float? =>
+        T.displayObject =
+        "" [@@bs.send.pipe : t];
     };
     module NineSlicePlane = {
       /*
@@ -7429,20 +10086,19 @@ module Impl (T: TYPES) => {
       /*
        The Uvs of the Mesh
        */
-      external uvs : t => unit /* unknown js type: Float32Array */ = "" [@@bs.get];
+      external uvs : t => Js_typed_array.Float32Array.t = "" [@@bs.get];
       /*
        The Uvs of the Mesh
        */
-      external setUvs : t => unit /* unknown js type: Float32Array */ => unit = "uvs" [@@bs.set];
+      external setUvs : t => Js_typed_array.Float32Array.t => unit = "uvs" [@@bs.set];
       /*
        An array of vertices
        */
-      external vertices : t => unit /* unknown js type: Float32Array */ = "" [@@bs.get];
+      external vertices : t => Js_typed_array.Float32Array.t = "" [@@bs.get];
       /*
        An array of vertices
        */
-      external setVertices : t => unit /* unknown js type: Float32Array */ => unit =
-        "vertices" [@@bs.set];
+      external setVertices : t => Js_typed_array.Float32Array.t => unit = "vertices" [@@bs.set];
       /*
        Version of mesh uvs are dirty or not
        */
@@ -7811,6 +10467,150 @@ module Impl (T: TYPES) => {
        is hovered over the displayObject.
        */
       external setCursor : t => string => unit = "cursor" [@@bs.set];
+      /*
+       Updates the horizontal vertices.
+       */
+      external updateHorizontalVertices : unit = "" [@@bs.send.pipe : t];
+      /*
+       Updates the vertical vertices.
+       */
+      external updateVerticalVertices : unit = "" [@@bs.send.pipe : t];
+      /*
+       Refreshes NineSlicePlane coords. All of them.
+       */
+      external _refresh : unit = "" [@@bs.send.pipe : t];
+      /*
+       multiplies uvs only if uploadUvTransform is false
+       call it after you change uvs manually
+       make sure that texture is valid
+       */
+      external multiplyUvs : unit = "" [@@bs.send.pipe : t];
+      /*
+       Refreshes uvs for generated meshes (rope, plane)
+       sometimes refreshes vertices too
+       */
+      external refresh : forceUpdate::Js.boolean? => unit = "" [@@bs.send.pipe : t];
+      /*
+       Returns the bounds of the mesh as a rectangle. The bounds calculation takes the worldTransform into account.
+       */
+      external _calculateBounds : unit = "" [@@bs.send.pipe : t];
+      /*
+       Tests if a point is inside this mesh. Works only for TRIANGLE_MESH
+       */
+      external containsPoint : point::T.point => Js.boolean = "" [@@bs.send.pipe : t];
+      /*
+       Adds one or more children to the container.
+
+       <p>Multiple items can be added like so: <code>myContainer.addChild(thingOne, thingTwo, thingThree)</code></p>
+       */
+      external addChild : child::T.displayObject => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Adds a child to the container at a specified index. If the index is out of bounds an error will be thrown
+       */
+      external addChildAt : child::T.displayObject => index::float => T.displayObject =
+        "" [@@bs.send.pipe : t];
+      /*
+       Swaps the position of 2 Display Objects within this container.
+       */
+      external swapChildren : child::T.displayObject => child2::T.displayObject => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       Returns the index position of a child DisplayObject instance
+       */
+      external getChildIndex : child::T.displayObject => float = "" [@@bs.send.pipe : t];
+      /*
+       Changes the position of an existing child in the display object container
+       */
+      external setChildIndex : child::T.displayObject => index::float => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       Returns the child at the specified index
+       */
+      external getChildAt : index::float => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Removes one or more children from the container.
+       */
+      external removeChild : child::T.displayObject => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Removes a child from the specified index position.
+       */
+      external removeChildAt : index::float => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Removes all children from this container that are within the begin and end indexes.
+       */
+      external removeChildren : beginIndex::float? => endIndex::float? => array T.displayObject =
+        "" [@@bs.send.pipe : t];
+      /*
+       Updates the transform on all children of this container for rendering
+       */
+      external updateTransform : unit = "" [@@bs.send.pipe : t];
+      /*
+       Recalculates the bounds of the container.
+       */
+      external calculateBounds : unit = "" [@@bs.send.pipe : t];
+      /*
+       Renders the object using the WebGL renderer
+       */
+      external renderWebGL : renderer::T.webGLRenderer => unit = "" [@@bs.send.pipe : t];
+      /*
+       Renders the object using the Canvas renderer
+       */
+      external renderCanvas : renderer::T.canvasRenderer => unit = "" [@@bs.send.pipe : t];
+      /*
+       <p>Removes all internal references and listeners as well as removes children from the display list.
+       Do not use a Container after calling <code>destroy</code>.</p>
+       */
+      external destroy : options::unit /* unknown js type: object|boolean */? => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       recursively updates transform of all objects from the root to this one
+       internal function for toLocal()
+       */
+      external _recursivePostUpdateTransform : unit = "" [@@bs.send.pipe : t];
+      /*
+       Retrieves the bounds of the displayObject as a rectangle object.
+       */
+      external getBounds : skipUpdate::Js.boolean => rect::T.rectangle => T.rectangle =
+        "" [@@bs.send.pipe : t];
+      /*
+       Retrieves the local bounds of the displayObject as a rectangle object
+       */
+      external getLocalBounds : rect::T.rectangle? => T.rectangle = "" [@@bs.send.pipe : t];
+      /*
+       Calculates the global position of the display object
+       */
+      external toGlobal :
+        position::T.point => point::T.point? => skipUpdate::Js.boolean? => T.point =
+        "" [@@bs.send.pipe : t];
+      /*
+       Calculates the local position of the display object relative to another point
+       */
+      external toLocal :
+        position::T.point =>
+        from::T.displayObject? =>
+        point::T.point? =>
+        skipUpdate::Js.boolean? =>
+        T.point =
+        "" [@@bs.send.pipe : t];
+      /*
+       Set the parent Container of this DisplayObject
+       */
+      external setParent : container::T.container => T.container = "" [@@bs.send.pipe : t];
+      /*
+       Convenience function to set the position, scale, skew and pivot at once.
+       */
+      external setTransform :
+        x::float? =>
+        y::float? =>
+        scaleX::float? =>
+        scaleY::float? =>
+        rotation::float? =>
+        skewX::float? =>
+        skewY::float? =>
+        pivotX::float? =>
+        pivotY::float? =>
+        T.displayObject =
+        "" [@@bs.send.pipe : t];
     };
     module Plane = {
       /*
@@ -7827,20 +10627,19 @@ module Impl (T: TYPES) => {
       /*
        The Uvs of the Mesh
        */
-      external uvs : t => unit /* unknown js type: Float32Array */ = "" [@@bs.get];
+      external uvs : t => Js_typed_array.Float32Array.t = "" [@@bs.get];
       /*
        The Uvs of the Mesh
        */
-      external setUvs : t => unit /* unknown js type: Float32Array */ => unit = "uvs" [@@bs.set];
+      external setUvs : t => Js_typed_array.Float32Array.t => unit = "uvs" [@@bs.set];
       /*
        An array of vertices
        */
-      external vertices : t => unit /* unknown js type: Float32Array */ = "" [@@bs.get];
+      external vertices : t => Js_typed_array.Float32Array.t = "" [@@bs.get];
       /*
        An array of vertices
        */
-      external setVertices : t => unit /* unknown js type: Float32Array */ => unit =
-        "vertices" [@@bs.set];
+      external setVertices : t => Js_typed_array.Float32Array.t => unit = "vertices" [@@bs.set];
       /*
        Version of mesh uvs are dirty or not
        */
@@ -8225,6 +11024,142 @@ module Impl (T: TYPES) => {
        is hovered over the displayObject.
        */
       external setCursor : t => string => unit = "cursor" [@@bs.set];
+      /*
+       Refreshes plane coordinates
+       */
+      external _refresh : unit = "" [@@bs.send.pipe : t];
+      /*
+       multiplies uvs only if uploadUvTransform is false
+       call it after you change uvs manually
+       make sure that texture is valid
+       */
+      external multiplyUvs : unit = "" [@@bs.send.pipe : t];
+      /*
+       Refreshes uvs for generated meshes (rope, plane)
+       sometimes refreshes vertices too
+       */
+      external refresh : forceUpdate::Js.boolean? => unit = "" [@@bs.send.pipe : t];
+      /*
+       Returns the bounds of the mesh as a rectangle. The bounds calculation takes the worldTransform into account.
+       */
+      external _calculateBounds : unit = "" [@@bs.send.pipe : t];
+      /*
+       Tests if a point is inside this mesh. Works only for TRIANGLE_MESH
+       */
+      external containsPoint : point::T.point => Js.boolean = "" [@@bs.send.pipe : t];
+      /*
+       Adds one or more children to the container.
+
+       <p>Multiple items can be added like so: <code>myContainer.addChild(thingOne, thingTwo, thingThree)</code></p>
+       */
+      external addChild : child::T.displayObject => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Adds a child to the container at a specified index. If the index is out of bounds an error will be thrown
+       */
+      external addChildAt : child::T.displayObject => index::float => T.displayObject =
+        "" [@@bs.send.pipe : t];
+      /*
+       Swaps the position of 2 Display Objects within this container.
+       */
+      external swapChildren : child::T.displayObject => child2::T.displayObject => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       Returns the index position of a child DisplayObject instance
+       */
+      external getChildIndex : child::T.displayObject => float = "" [@@bs.send.pipe : t];
+      /*
+       Changes the position of an existing child in the display object container
+       */
+      external setChildIndex : child::T.displayObject => index::float => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       Returns the child at the specified index
+       */
+      external getChildAt : index::float => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Removes one or more children from the container.
+       */
+      external removeChild : child::T.displayObject => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Removes a child from the specified index position.
+       */
+      external removeChildAt : index::float => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Removes all children from this container that are within the begin and end indexes.
+       */
+      external removeChildren : beginIndex::float? => endIndex::float? => array T.displayObject =
+        "" [@@bs.send.pipe : t];
+      /*
+       Updates the transform on all children of this container for rendering
+       */
+      external updateTransform : unit = "" [@@bs.send.pipe : t];
+      /*
+       Recalculates the bounds of the container.
+       */
+      external calculateBounds : unit = "" [@@bs.send.pipe : t];
+      /*
+       Renders the object using the WebGL renderer
+       */
+      external renderWebGL : renderer::T.webGLRenderer => unit = "" [@@bs.send.pipe : t];
+      /*
+       Renders the object using the Canvas renderer
+       */
+      external renderCanvas : renderer::T.canvasRenderer => unit = "" [@@bs.send.pipe : t];
+      /*
+       <p>Removes all internal references and listeners as well as removes children from the display list.
+       Do not use a Container after calling <code>destroy</code>.</p>
+       */
+      external destroy : options::unit /* unknown js type: object|boolean */? => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       recursively updates transform of all objects from the root to this one
+       internal function for toLocal()
+       */
+      external _recursivePostUpdateTransform : unit = "" [@@bs.send.pipe : t];
+      /*
+       Retrieves the bounds of the displayObject as a rectangle object.
+       */
+      external getBounds : skipUpdate::Js.boolean => rect::T.rectangle => T.rectangle =
+        "" [@@bs.send.pipe : t];
+      /*
+       Retrieves the local bounds of the displayObject as a rectangle object
+       */
+      external getLocalBounds : rect::T.rectangle? => T.rectangle = "" [@@bs.send.pipe : t];
+      /*
+       Calculates the global position of the display object
+       */
+      external toGlobal :
+        position::T.point => point::T.point? => skipUpdate::Js.boolean? => T.point =
+        "" [@@bs.send.pipe : t];
+      /*
+       Calculates the local position of the display object relative to another point
+       */
+      external toLocal :
+        position::T.point =>
+        from::T.displayObject? =>
+        point::T.point? =>
+        skipUpdate::Js.boolean? =>
+        T.point =
+        "" [@@bs.send.pipe : t];
+      /*
+       Set the parent Container of this DisplayObject
+       */
+      external setParent : container::T.container => T.container = "" [@@bs.send.pipe : t];
+      /*
+       Convenience function to set the position, scale, skew and pivot at once.
+       */
+      external setTransform :
+        x::float? =>
+        y::float? =>
+        scaleX::float? =>
+        scaleY::float? =>
+        rotation::float? =>
+        skewX::float? =>
+        skewY::float? =>
+        pivotX::float? =>
+        pivotY::float? =>
+        T.displayObject =
+        "" [@@bs.send.pipe : t];
     };
     module Rope = {
       /*
@@ -8249,38 +11184,35 @@ module Impl (T: TYPES) => {
       /*
        An array of vertices used to construct this rope.
        */
-      external vertices : t => unit /* unknown js type: Float32Array */ = "" [@@bs.get];
+      external vertices : t => Js_typed_array.Float32Array.t = "" [@@bs.get];
       /*
        An array of vertices used to construct this rope.
        */
-      external setVertices : t => unit /* unknown js type: Float32Array */ => unit =
-        "vertices" [@@bs.set];
+      external setVertices : t => Js_typed_array.Float32Array.t => unit = "vertices" [@@bs.set];
       /*
        The WebGL Uvs of the rope.
        */
-      external uvs : t => unit /* unknown js type: Float32Array */ = "" [@@bs.get];
+      external uvs : t => Js_typed_array.Float32Array.t = "" [@@bs.get];
       /*
        The WebGL Uvs of the rope.
        */
-      external setUvs : t => unit /* unknown js type: Float32Array */ => unit = "uvs" [@@bs.set];
+      external setUvs : t => Js_typed_array.Float32Array.t => unit = "uvs" [@@bs.set];
       /*
        An array containing the color components
        */
-      external colors : t => unit /* unknown js type: Float32Array */ = "" [@@bs.get];
+      external colors : t => Js_typed_array.Float32Array.t = "" [@@bs.get];
       /*
        An array containing the color components
        */
-      external setColors : t => unit /* unknown js type: Float32Array */ => unit =
-        "colors" [@@bs.set];
+      external setColors : t => Js_typed_array.Float32Array.t => unit = "colors" [@@bs.set];
       /*
        An array containing the indices of the vertices
        */
-      external indices : t => unit /* unknown js type: Uint16Array */ = "" [@@bs.get];
+      external indices : t => Js_typed_array.Uint16Array.t = "" [@@bs.get];
       /*
        An array containing the indices of the vertices
        */
-      external setIndices : t => unit /* unknown js type: Uint16Array */ => unit =
-        "indices" [@@bs.set];
+      external setIndices : t => Js_typed_array.Uint16Array.t => unit = "indices" [@@bs.set];
       /*
        refreshes vertices on every updateTransform
        */
@@ -8673,6 +11605,142 @@ module Impl (T: TYPES) => {
        is hovered over the displayObject.
        */
       external setCursor : t => string => unit = "cursor" [@@bs.set];
+      /*
+       Refreshes
+       */
+      external _refresh : unit = "" [@@bs.send.pipe : t];
+      /*
+       refreshes vertices of Rope mesh
+       */
+      external refreshVertices : unit = "" [@@bs.send.pipe : t];
+      /*
+       multiplies uvs only if uploadUvTransform is false
+       call it after you change uvs manually
+       make sure that texture is valid
+       */
+      external multiplyUvs : unit = "" [@@bs.send.pipe : t];
+      /*
+       Refreshes uvs for generated meshes (rope, plane)
+       sometimes refreshes vertices too
+       */
+      external refresh : forceUpdate::Js.boolean? => unit = "" [@@bs.send.pipe : t];
+      /*
+       Returns the bounds of the mesh as a rectangle. The bounds calculation takes the worldTransform into account.
+       */
+      external _calculateBounds : unit = "" [@@bs.send.pipe : t];
+      /*
+       Tests if a point is inside this mesh. Works only for TRIANGLE_MESH
+       */
+      external containsPoint : point::T.point => Js.boolean = "" [@@bs.send.pipe : t];
+      /*
+       Adds one or more children to the container.
+
+       <p>Multiple items can be added like so: <code>myContainer.addChild(thingOne, thingTwo, thingThree)</code></p>
+       */
+      external addChild : child::T.displayObject => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Adds a child to the container at a specified index. If the index is out of bounds an error will be thrown
+       */
+      external addChildAt : child::T.displayObject => index::float => T.displayObject =
+        "" [@@bs.send.pipe : t];
+      /*
+       Swaps the position of 2 Display Objects within this container.
+       */
+      external swapChildren : child::T.displayObject => child2::T.displayObject => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       Returns the index position of a child DisplayObject instance
+       */
+      external getChildIndex : child::T.displayObject => float = "" [@@bs.send.pipe : t];
+      /*
+       Changes the position of an existing child in the display object container
+       */
+      external setChildIndex : child::T.displayObject => index::float => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       Returns the child at the specified index
+       */
+      external getChildAt : index::float => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Removes one or more children from the container.
+       */
+      external removeChild : child::T.displayObject => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Removes a child from the specified index position.
+       */
+      external removeChildAt : index::float => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Removes all children from this container that are within the begin and end indexes.
+       */
+      external removeChildren : beginIndex::float? => endIndex::float? => array T.displayObject =
+        "" [@@bs.send.pipe : t];
+      /*
+       Recalculates the bounds of the container.
+       */
+      external calculateBounds : unit = "" [@@bs.send.pipe : t];
+      /*
+       Renders the object using the WebGL renderer
+       */
+      external renderWebGL : renderer::T.webGLRenderer => unit = "" [@@bs.send.pipe : t];
+      /*
+       Renders the object using the Canvas renderer
+       */
+      external renderCanvas : renderer::T.canvasRenderer => unit = "" [@@bs.send.pipe : t];
+      /*
+       <p>Removes all internal references and listeners as well as removes children from the display list.
+       Do not use a Container after calling <code>destroy</code>.</p>
+       */
+      external destroy : options::unit /* unknown js type: object|boolean */? => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       recursively updates transform of all objects from the root to this one
+       internal function for toLocal()
+       */
+      external _recursivePostUpdateTransform : unit = "" [@@bs.send.pipe : t];
+      /*
+       Retrieves the bounds of the displayObject as a rectangle object.
+       */
+      external getBounds : skipUpdate::Js.boolean => rect::T.rectangle => T.rectangle =
+        "" [@@bs.send.pipe : t];
+      /*
+       Retrieves the local bounds of the displayObject as a rectangle object
+       */
+      external getLocalBounds : rect::T.rectangle? => T.rectangle = "" [@@bs.send.pipe : t];
+      /*
+       Calculates the global position of the display object
+       */
+      external toGlobal :
+        position::T.point => point::T.point? => skipUpdate::Js.boolean? => T.point =
+        "" [@@bs.send.pipe : t];
+      /*
+       Calculates the local position of the display object relative to another point
+       */
+      external toLocal :
+        position::T.point =>
+        from::T.displayObject? =>
+        point::T.point? =>
+        skipUpdate::Js.boolean? =>
+        T.point =
+        "" [@@bs.send.pipe : t];
+      /*
+       Set the parent Container of this DisplayObject
+       */
+      external setParent : container::T.container => T.container = "" [@@bs.send.pipe : t];
+      /*
+       Convenience function to set the position, scale, skew and pivot at once.
+       */
+      external setTransform :
+        x::float? =>
+        y::float? =>
+        scaleX::float? =>
+        scaleY::float? =>
+        rotation::float? =>
+        skewX::float? =>
+        skewY::float? =>
+        pivotX::float? =>
+        pivotY::float? =>
+        T.displayObject =
+        "" [@@bs.send.pipe : t];
     };
   };
   module MeshRenderer = {
@@ -8690,6 +11758,26 @@ module Impl (T: TYPES) => {
      The renderer this manager works for.
      */
     external setRenderer : t => T.webGLRenderer => unit = "renderer" [@@bs.set];
+    /*
+     renders mesh
+     */
+    external render : mesh::T.mesh => unit = "" [@@bs.send.pipe : t];
+    /*
+     Starts the renderer and sets the shader
+     */
+    external start : unit = "" [@@bs.send.pipe : t];
+    /*
+     Stops the renderer
+     */
+    external stop : unit = "" [@@bs.send.pipe : t];
+    /*
+     Stub method for rendering content and emptying the current batch.
+     */
+    external flush : unit = "" [@@bs.send.pipe : t];
+    /*
+     Generic destroy methods to be overridden by the subclass
+     */
+    external destroy : unit = "" [@@bs.send.pipe : t];
   };
   module Particles = {
     module ParticleContainer = {
@@ -9044,6 +12132,116 @@ module Impl (T: TYPES) => {
        is hovered over the displayObject.
        */
       external setCursor : t => string => unit = "cursor" [@@bs.set];
+      /*
+       Sets the private properties array to dynamic / static based on the passed properties object
+       */
+      external setProperties : properties::unit /* unknown js type: object */ => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       Destroys the container
+       */
+      external destroy : options::unit /* unknown js type: object|boolean */? => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       Adds one or more children to the container.
+
+       <p>Multiple items can be added like so: <code>myContainer.addChild(thingOne, thingTwo, thingThree)</code></p>
+       */
+      external addChild : child::T.displayObject => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Adds a child to the container at a specified index. If the index is out of bounds an error will be thrown
+       */
+      external addChildAt : child::T.displayObject => index::float => T.displayObject =
+        "" [@@bs.send.pipe : t];
+      /*
+       Swaps the position of 2 Display Objects within this container.
+       */
+      external swapChildren : child::T.displayObject => child2::T.displayObject => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       Returns the index position of a child DisplayObject instance
+       */
+      external getChildIndex : child::T.displayObject => float = "" [@@bs.send.pipe : t];
+      /*
+       Changes the position of an existing child in the display object container
+       */
+      external setChildIndex : child::T.displayObject => index::float => unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       Returns the child at the specified index
+       */
+      external getChildAt : index::float => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Removes one or more children from the container.
+       */
+      external removeChild : child::T.displayObject => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Removes a child from the specified index position.
+       */
+      external removeChildAt : index::float => T.displayObject = "" [@@bs.send.pipe : t];
+      /*
+       Removes all children from this container that are within the begin and end indexes.
+       */
+      external removeChildren : beginIndex::float? => endIndex::float? => array T.displayObject =
+        "" [@@bs.send.pipe : t];
+      /*
+       Recalculates the bounds of the container.
+       */
+      external calculateBounds : unit = "" [@@bs.send.pipe : t];
+      /*
+       Recalculates the bounds of the object. Override this to
+       calculate the bounds of the specific object (not including children).
+       */
+      external _calculateBounds : unit = "" [@@bs.send.pipe : t];
+      /*
+       recursively updates transform of all objects from the root to this one
+       internal function for toLocal()
+       */
+      external _recursivePostUpdateTransform : unit = "" [@@bs.send.pipe : t];
+      /*
+       Retrieves the bounds of the displayObject as a rectangle object.
+       */
+      external getBounds : skipUpdate::Js.boolean => rect::T.rectangle => T.rectangle =
+        "" [@@bs.send.pipe : t];
+      /*
+       Retrieves the local bounds of the displayObject as a rectangle object
+       */
+      external getLocalBounds : rect::T.rectangle? => T.rectangle = "" [@@bs.send.pipe : t];
+      /*
+       Calculates the global position of the display object
+       */
+      external toGlobal :
+        position::T.point => point::T.point? => skipUpdate::Js.boolean? => T.point =
+        "" [@@bs.send.pipe : t];
+      /*
+       Calculates the local position of the display object relative to another point
+       */
+      external toLocal :
+        position::T.point =>
+        from::T.displayObject? =>
+        point::T.point? =>
+        skipUpdate::Js.boolean? =>
+        T.point =
+        "" [@@bs.send.pipe : t];
+      /*
+       Set the parent Container of this DisplayObject
+       */
+      external setParent : container::T.container => T.container = "" [@@bs.send.pipe : t];
+      /*
+       Convenience function to set the position, scale, skew and pivot at once.
+       */
+      external setTransform :
+        x::float? =>
+        y::float? =>
+        scaleX::float? =>
+        scaleY::float? =>
+        rotation::float? =>
+        skewX::float? =>
+        skewY::float? =>
+        pivotX::float? =>
+        pivotY::float? =>
+        T.displayObject =
+        "" [@@bs.send.pipe : t];
     };
   };
   module ParticleShader = {
@@ -9095,6 +12293,37 @@ module Impl (T: TYPES) => {
       external setUploadHookHelper :
         t => unit /* unknown js type: PIXI.prepare.CanvasPrepare|PIXI.WebGLRenderer */ => unit =
         "uploadHookHelper" [@@bs.set];
+      /*
+       Upload all the textures and graphics to the GPU.
+       */
+      external upload :
+        item::
+          unit /* unknown js type: function|PIXI.DisplayObject|PIXI.Container|PIXI.BaseTexture|PIXI.Texture|PIXI.Graphics|PIXI.Text */ =>
+        done::unit /* unknown js type: function */? =>
+        unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       Adds hooks for finding items.
+       */
+      external registerFindHook :
+        addHook::unit /* unknown js type: function */ => unit /* unknown js type: PIXI.BasePrepare */ =
+        "" [@@bs.send.pipe : t];
+      /*
+       Adds hooks for uploading items.
+       */
+      external registerUploadHook :
+        uploadHook::unit /* unknown js type: function */ => unit /* unknown js type: PIXI.BasePrepare */ =
+        "" [@@bs.send.pipe : t];
+      /*
+       Manually add an item to the uploading queue.
+       */
+      external add :
+        item::unit /* unknown js type: PIXI.DisplayObject|PIXI.Container|PIXI.BaseTexture|PIXI.Texture|PIXI.Graphics|PIXI.Text|* */ => unit /* unknown js type: PIXI.CanvasPrepare */ =
+        "" [@@bs.send.pipe : t];
+      /*
+       Destroys the plugin, don't use after this.
+       */
+      external destroy : unit = "" [@@bs.send.pipe : t];
     };
     module CanvasPrepare = {
       /*
@@ -9108,6 +12337,37 @@ module Impl (T: TYPES) => {
       type t = T.canvasPrepare;
       external create : renderer::T.canvasRenderer => unit => t =
         "CanvasPrepare" [@@bs.new] [@@bs.scope "prepare"] [@@bs.module ("pixi.js", "PIXI")];
+      /*
+       Destroys the plugin, don't use after this.
+       */
+      external destroy : unit = "" [@@bs.send.pipe : t];
+      /*
+       Upload all the textures and graphics to the GPU.
+       */
+      external upload :
+        item::
+          unit /* unknown js type: function|PIXI.DisplayObject|PIXI.Container|PIXI.BaseTexture|PIXI.Texture|PIXI.Graphics|PIXI.Text */ =>
+        done::unit /* unknown js type: function */? =>
+        unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       Adds hooks for finding items.
+       */
+      external registerFindHook :
+        addHook::unit /* unknown js type: function */ => unit /* unknown js type: PIXI.BasePrepare */ =
+        "" [@@bs.send.pipe : t];
+      /*
+       Adds hooks for uploading items.
+       */
+      external registerUploadHook :
+        uploadHook::unit /* unknown js type: function */ => unit /* unknown js type: PIXI.BasePrepare */ =
+        "" [@@bs.send.pipe : t];
+      /*
+       Manually add an item to the uploading queue.
+       */
+      external add :
+        item::unit /* unknown js type: PIXI.DisplayObject|PIXI.Container|PIXI.BaseTexture|PIXI.Texture|PIXI.Graphics|PIXI.Text|* */ => unit /* unknown js type: PIXI.CanvasPrepare */ =
+        "" [@@bs.send.pipe : t];
     };
     module CountLimiter = {
       /*
@@ -9117,6 +12377,14 @@ module Impl (T: TYPES) => {
       type t = T.countLimiter;
       external create : maxItemsPerFrame::float => unit => t =
         "CountLimiter" [@@bs.new] [@@bs.scope "prepare"] [@@bs.module ("pixi.js", "PIXI")];
+      /*
+       Resets any counting properties to start fresh on a new frame.
+       */
+      external beginFrame : unit = "" [@@bs.send.pipe : t];
+      /*
+       Checks to see if another item can be uploaded. This should only be called once per item.
+       */
+      external allowedToUpload : Js.boolean = "" [@@bs.send.pipe : t];
     };
     module WebGLPrepare = {
       /*
@@ -9127,6 +12395,37 @@ module Impl (T: TYPES) => {
       type t = T.webGLPrepare;
       external create : renderer::T.webGLRenderer => unit => t =
         "WebGLPrepare" [@@bs.new] [@@bs.scope "prepare"] [@@bs.module ("pixi.js", "PIXI")];
+      /*
+       Upload all the textures and graphics to the GPU.
+       */
+      external upload :
+        item::
+          unit /* unknown js type: function|PIXI.DisplayObject|PIXI.Container|PIXI.BaseTexture|PIXI.Texture|PIXI.Graphics|PIXI.Text */ =>
+        done::unit /* unknown js type: function */? =>
+        unit =
+        "" [@@bs.send.pipe : t];
+      /*
+       Adds hooks for finding items.
+       */
+      external registerFindHook :
+        addHook::unit /* unknown js type: function */ => unit /* unknown js type: PIXI.BasePrepare */ =
+        "" [@@bs.send.pipe : t];
+      /*
+       Adds hooks for uploading items.
+       */
+      external registerUploadHook :
+        uploadHook::unit /* unknown js type: function */ => unit /* unknown js type: PIXI.BasePrepare */ =
+        "" [@@bs.send.pipe : t];
+      /*
+       Manually add an item to the uploading queue.
+       */
+      external add :
+        item::unit /* unknown js type: PIXI.DisplayObject|PIXI.Container|PIXI.BaseTexture|PIXI.Texture|PIXI.Graphics|PIXI.Text|* */ => unit /* unknown js type: PIXI.CanvasPrepare */ =
+        "" [@@bs.send.pipe : t];
+      /*
+       Destroys the plugin, don't use after this.
+       */
+      external destroy : unit = "" [@@bs.send.pipe : t];
     };
   };
   module TimeLimiter = {
@@ -9137,6 +12436,14 @@ module Impl (T: TYPES) => {
     type t = T.timeLimiter;
     external create : maxMilliseconds::float => unit => t =
       "TimeLimiter" [@@bs.new] [@@bs.module ("pixi.js", "PIXI")];
+    /*
+     Resets any counting properties to start fresh on a new frame.
+     */
+    external beginFrame : unit = "" [@@bs.send.pipe : t];
+    /*
+     Checks to see if another item can be uploaded. This should only be called once per item.
+     */
+    external allowedToUpload : Js.boolean = "" [@@bs.send.pipe : t];
   };
 };
 
