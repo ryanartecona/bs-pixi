@@ -1,5 +1,5 @@
 {
-  "name": "bucklescript-test",
+  "name": "bs-pixi",
   "bs-dependencies": [
     "bs-webapi"
   ],
