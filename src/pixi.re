@@ -5,29 +5,29 @@ module Utils = {
     "" [@@bs.scope "utils"] [@@bs.module ("pixi.js", "PIXI")];
 };
 
-/*
- module SystemRendererClass = {
-   class type _t = {
-     pub autoResize: Js.boolean
-   };
- };
+module SystemRendererClass = {
+  class type _t = {
+    pub autoResize: Js.boolean
+  };
+};
 
- module ApplicationClass = {
-   class type _t = {
-     pub renderer: [ | `webgl unit | `canvas unit];
-     pub stage: unit;
-     pub ticker: unit;
-     pub view: Dom.element;
-     pub render: unit => unit;
-     pub start: unit => unit;
-     pub stop: unit => unit;
-     pub destroy: bool => unit
-   };
-   type t = Js.t _t;
-   external create : unit => t =
-     "Application" [@@bs.new] [@@bs.module "pixi.js"];
- };
- */
+/* module WebGLRendererClass = {}; */
+module ApplicationClass = {
+  class type _t = {
+    pub stage: unit;
+    pub ticker: unit;
+    pub view: Dom.element;
+    pub renderer: [ | `webgl unit | `canvas unit];
+    pub render: unit => unit;
+    pub start: unit => unit;
+    pub stop: unit => unit;
+    pub destroy: Js.boolean => unit
+  } [@bs];
+  type t = Js.t _t;
+  external create : unit => t =
+    "Application" [@@bs.new] [@@bs.module "pixi.js"];
+};
+
 module SystemRenderer = {
   type t;
   external autoResize : t => Js.boolean = "" [@@bs.get];

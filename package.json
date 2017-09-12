@@ -6,7 +6,7 @@
     "bs-webapi": "^0.4.1",
     "jsdoc": "^3.4.3",
     "lodash": "^4.17.4",
-    "npm": "^5.0.3",
+    "npm": "^5.0.4",
     "pixi.js": "4.5.3",
     "webpack": "^2.6.1",
     "webpack-dev-server": "^2.4.5",

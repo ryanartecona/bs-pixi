@@ -68,19 +68,25 @@ var getItem = function(modules, path) {
 var jsToBsType = (function() {
   var simpleTranslations = {
     boolean: "Js.boolean",
+    Boolean: "Js.boolean",
     string: "string",
     number: "float",
     Number: "float",
+    int: "int",
     HTMLCanvasElement: "Dom.element",
+    HTMLImageElement: "Dom.element",
+    HTMLVideoElement: "Dom.element",
     // CanvasRenderingContext2d: "Bs_webapi.Canvas.Canvas2d.t",
     WebGLRenderingContext: "ReasonJs.Gl.glT",
     WebGLBuffer: "ReasonJs.Gl.bufferT",
     Float32Array: "Js_typed_array.Float32Array.t",
     Uint8Array: "Js_typed_array.Uint8Array.t",
+    Uint8ClampedArray: "Js_typed_array.Uint8ClampedArray.t",
     Uint16Array: "Js_typed_array.Uint16Array.t"
   };
   var regexpArrayOf = /^Array\.<(.*)>$/;
   return function(modules, jsTypeNames) {
+    jsTypeNames = _.sortBy(jsTypeNames);
     if (jsTypeNames.length === 1) {
       var jsTypeName = jsTypeNames[0];
       if (simpleTranslations[jsTypeName]) {
@@ -98,7 +104,7 @@ var jsToBsType = (function() {
         }
       }
     } else if (
-      _.isEqual(jsTypeNames, ["HTMLImageElement" | "HTMLCanvasElement"])
+      _.isEqual(jsTypeNames, ["HTMLCanvasElement", "HTMLImageElement"])
     ) {
       return `Dom.element`;
     } else if (_.isEqual(jsTypeNames, ["string", "Array.<string>"])) {
@@ -166,11 +172,9 @@ ${formatDescription(item.description)}
       ? ""
       : name}" [@@bs.get];`;
     if (item.setter) {
-      var setterName = unkeyword(titleCase(name));
+      var setterName = `set${titleCase(name)}`;
       r += `
-${descComment} external set${titleCase(
-        name
-      )} : t => ${item.bsType} => unit = "${name}" [@@bs.set];`;
+${descComment} external ${setterName} : t => ${item.bsType} => unit = "${name}" [@@bs.set];`;
     }
     return r;
   } else if (item.type === "constructor") {
@@ -244,6 +248,7 @@ function cleanupLongname(longname) {
       "PIXI.interaction.InteractionTrackingData"
     )
     .replace("PIXI.CountLimiter", "PIXI.prepare.CountLimiter")
+    .replace(/PIXI\.(Base|Canvas|WebGL)Prepare/, "PIXI.prepare.$1Prepare")
     // Sometimes `.memberof` has stuff like 'PIXI.DisplayObject#core', so
     // 'DisplayObject#core' -> 'DisplayObject'
     .replace(/#\w+\./, ".")
@@ -393,6 +398,25 @@ exports.publish = function(taffyData, opts) {
   });
 
   data().each(function(datum) {
+    // if (/getRectangle$/.test(datum.longname)) {
+    //   ppJson(datum);
+    // }
+    if (
+      datum.kind === "function" &&
+      datum.scope === "instance" &&
+      datum.access !== "private" &&
+      !datum.deprecated &&
+      datum.params
+    ) {
+      var m = ensureModuleExists(
+        modules,
+        modulePathFromLongname(datum.memberof)
+      );
+      addMethod(m, datum);
+    }
+  });
+
+  data().each(function(datum) {
     if (
       datum.kind === "member" &&
       datum.scope === "instance" &&
@@ -408,31 +432,17 @@ exports.publish = function(taffyData, opts) {
         modules,
         modulePathFromLongname(datum.memberof)
       );
-      m.items[datum.name] = {
+      var memberName = m.items[datum.name] ||
+        m.items[`set${titleCase(datum.name)}`]
+        ? `${datum.name}Prop`
+        : datum.name;
+      m.items[memberName] = {
         type: "getter",
+        propname: datum.name,
         description: datum.description,
         bsType: jsToBsType(modules, datum.type.names),
         setter: !datum.readonly
       };
-    }
-  });
-
-  data().each(function(datum) {
-    if (/getRectangle$/.test(datum.longname)) {
-      ppJson(datum);
-    }
-    if (
-      datum.kind === "function" &&
-      datum.scope === "instance" &&
-      datum.access !== "private" &&
-      !datum.deprecated &&
-      datum.params
-    ) {
-      var m = ensureModuleExists(
-        modules,
-        modulePathFromLongname(datum.memberof)
-      );
-      addMethod(m, datum);
     }
   });
 
